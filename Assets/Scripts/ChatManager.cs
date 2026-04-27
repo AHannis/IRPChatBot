@@ -7,7 +7,6 @@ using UnityEngine.UI;
 public class ChatManager : MonoBehaviour
 {
     public Transform content;
-
     public GameObject userContainerPrefab;
     public GameObject aiContainerPrefab;
 
@@ -27,8 +26,11 @@ public class ChatManager : MonoBehaviour
     bool userAtBottom = true;
 
     bool waitingForName = false;
-    bool didNameJoke = false;
-    bool postNameFollowUp = false;
+    bool inNameLoop = false;
+    bool reconnecting = false;
+
+    int nameChangeCount = 0;
+    int convoState = 0;
 
     void Start()
     {
@@ -40,13 +42,14 @@ public class ChatManager : MonoBehaviour
 
         if (!PlayerPrefs.HasKey("HasChattedBefore"))
         {
-            SendAIImmediate("hey kid! it's uncle bob. i'm just re-adding everyone's numbers because i swapped sims... i dunno, i don't understand this modern technology. what do you want me to save you as?");
+            SendAIImmediate("hey kid! it's uncle bob. i'm just re-adding everyone's numbers because i swapped sims... what do you want me to save you as?");
             PlayerPrefs.SetInt("HasChattedBefore", 1);
             waitingForName = true;
         }
         else
         {
-            SendAIImmediate("there you are. thought you disappeared on me :)");
+            SendAIImmediate("haven't heard from you in a while, you okay?");
+            reconnecting = true;
         }
     }
 
@@ -60,14 +63,7 @@ public class ChatManager : MonoBehaviour
 
     void OnScrollChanged(Vector2 pos)
     {
-        if (scrollRect.verticalNormalizedPosition <= 0.05f)
-        {
-            userAtBottom = true;
-        }
-        else
-        {
-            userAtBottom = false;
-        }
+        userAtBottom = scrollRect.verticalNormalizedPosition <= 0.05f;
     }
 
     public void OnSendButton()
@@ -116,33 +112,6 @@ public class ChatManager : MonoBehaviour
         SaveConversation(reply, false);
 
         yield return StartCoroutine(SmartScroll());
-
-        if (postNameFollowUp)
-        {
-            postNameFollowUp = false;
-
-            yield return new WaitForSeconds(Random.Range(0.6f, 1.2f));
-
-            CreateMessage(RandomChoice(
-                "so how have you been anyway",
-                "what have you been up to lately",
-                "feels like i haven't seen you in ages"
-            ), false);
-        }
-        else
-        {
-            if (Random.value < 0.2f)
-            {
-                yield return new WaitForSeconds(Random.Range(0.6f, 1.2f));
-
-                CreateMessage(RandomChoice(
-                    "actually ignore me i read that wrong",
-                    "nah wait i get you now",
-                    "i'm overthinking that aren't i",
-                    "you know what i mean anyway"
-                ), false);
-            }
-        }
     }
 
     IEnumerator AnimateDots(int loops)
@@ -169,11 +138,6 @@ public class ChatManager : MonoBehaviour
             dot1.enabled = false;
             dot2.enabled = false;
             dot3.enabled = false;
-
-            if (Random.value < 0.3f)
-            {
-                yield return new WaitForSeconds(Random.Range(0.2f, 0.6f));
-            }
         }
 
         typingUI.SetActive(false);
@@ -183,150 +147,211 @@ public class ChatManager : MonoBehaviour
     {
         string lower = input.ToLower();
 
+        if (reconnecting)
+        {
+            reconnecting = false;
+
+            if (ContainsAny(lower, "good", "fine", "okay"))
+            {
+                return "good, just making sure. what have you been up to?";
+            }
+
+            if (ContainsAny(lower, "tired", "meh", "bored"))
+            {
+                return "yeah you sound it. been a long few days has it?";
+            }
+
+            return "alright, just checking in. what have you been up to?";
+        }
+
         if (waitingForName && string.IsNullOrEmpty(userName))
         {
-            userName = ExtractName(input);
+            userName = CleanName(input);
             PlayerPrefs.SetString("UserName", userName);
 
             waitingForName = false;
-            didNameJoke = false;
-            postNameFollowUp = true;
+            inNameLoop = true;
+            nameChangeCount = 0;
 
-            return "alright " + userName + ". saved. try not to go changing it every five minutes";
+            return "alright " + userName + ". saved.";
         }
 
-        if (lower.Contains("actually call me") && !didNameJoke)
+        if (inNameLoop && ContainsAny(lower, "call me", "jk", "changed", "nah"))
         {
-            didNameJoke = true;
-            return "okay i'll call you actually :)";
+            string newName = ExtractNameFlexible(input);
+            nameChangeCount++;
+
+            if (nameChangeCount < 5)
+            {
+                return "alright " + newName + " then";
+            }
+            else
+            {
+                userName = CleanName(newName);
+                PlayerPrefs.SetString("UserName", userName);
+
+                inNameLoop = false;
+                convoState = 1;
+
+                return "okay i'm saving it as " + userName;
+            }
         }
 
-        if ((lower.Contains("my name is") || lower.Contains("call me")) && didNameJoke)
+        if (inNameLoop && ContainsAny(lower, "stick", "keep", "that one", "this one"))
         {
-            string newName = ExtractName(input);
-            userName = newName;
+            inNameLoop = false;
+            convoState = 1;
+
+            return "alright, sticking with " + userName + ". how are you anyway?";
+        }
+
+        if (inNameLoop && IsLikelyName(input))
+        {
+            userName = CleanName(input);
             PlayerPrefs.SetString("UserName", userName);
 
-            didNameJoke = false;
+            inNameLoop = false;
+            convoState = 1;
 
-            return "oh c'mon it was a joke. ofc i'll put your name in my phonebook as " + userName;
+            return "alright " + userName + ". locking that in now";
         }
 
-        if (postNameFollowUp)
+        if (inNameLoop)
         {
-            return RandomChoice(
-                "we're all busy i get it, just don't forget to drop in sometime",
-                "i know how it is, everyone's got their own stuff going on",
-                "life gets in the way doesn't it, still good to hear from you though"
-            );
+            return "you changing it again or sticking with that one?";
+        }
+
+        if (ContainsAny(lower, "call me"))
+        {
+            string newName = ExtractNameFlexible(input);
+
+            userName = CleanName(newName);
+            PlayerPrefs.SetString("UserName", userName);
+
+            return "okay i'll call you " + userName + ". how are you anyway?";
+        }
+
+        if (convoState == 5)
+        {
+            if (ContainsFuzzy(lower, "chocolate", "cake", "biscuits", "cookies", "crisps"))
+            {
+                convoState = 6;
+                return "i'm sure i can get that in for you";
+            }
+
+            if (ContainsFuzzy(lower, "poo", "glass", "dog"))
+            {
+                convoState = 6;
+                return "alright enough messing about";
+            }
+
+            return "what do you fancy?";
         }
 
         return GenerateReply(input);
     }
 
-    string ExtractName(string input)
+    // ---------- SPELLING FIX ----------
+
+    int LevenshteinDistance(string a, string b)
     {
-        input = input.ToLower();
+        int[,] dp = new int[a.Length + 1, b.Length + 1];
 
-        if (input.Contains("call me"))
+        for (int i = 0; i <= a.Length; i++) dp[i, 0] = i;
+        for (int j = 0; j <= b.Length; j++) dp[0, j] = j;
+
+        for (int i = 1; i <= a.Length; i++)
         {
-            return CleanName(input.Substring(input.IndexOf("call me") + 7));
+            for (int j = 1; j <= b.Length; j++)
+            {
+                int cost = (a[i - 1] == b[j - 1]) ? 0 : 1;
+
+                dp[i, j] = Mathf.Min(
+                    dp[i - 1, j] + 1,
+                    dp[i, j - 1] + 1,
+                    dp[i - 1, j - 1] + cost
+                );
+            }
         }
 
-        if (input.Contains("name is"))
+        return dp[a.Length, b.Length];
+    }
+
+    bool ContainsFuzzy(string input, params string[] words)
+    {
+        string[] parts = input.Split(' ');
+
+        foreach (string p in parts)
         {
-            return CleanName(input.Substring(input.IndexOf("name is") + 7));
+            foreach (string w in words)
+            {
+                if (p.Contains(w) || LevenshteinDistance(p, w) <= 2)
+                {
+                    return true;
+                }
+            }
         }
 
-        return CleanName(input);
+        return false;
+    }
+
+    // ---------- HELPERS ----------
+
+    bool IsLikelyName(string input)
+    {
+        string t = input.Trim();
+
+        if (t.Length > 12) return false;
+        if (t.Contains(" ")) return false;
+
+        if (ContainsAny(t.ToLower(), "ok", "yeah", "yes", "no"))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    bool ContainsAny(string input, params string[] words)
+    {
+        foreach (string w in words)
+        {
+            if (input.Contains(w)) return true;
+        }
+        return false;
+    }
+
+    string GenerateReply(string input)
+    {
+        return RandomChoice(
+            "i get what you're saying",
+            "yeah that makes sense",
+            "fair enough",
+            "say more"
+        );
+    }
+
+    string ExtractNameFlexible(string input)
+    {
+        string lower = input.ToLower();
+
+        if (lower.Contains("call me"))
+        {
+            int i = lower.IndexOf("call me");
+            return input.Substring(i + 7).Trim();
+        }
+
+        string[] parts = input.Split(' ');
+        return parts[parts.Length - 1];
     }
 
     string CleanName(string raw)
     {
         raw = raw.Trim();
-
         string[] parts = raw.Split(' ');
-
-        if (parts.Length == 0)
-        {
-            return "kid";
-        }
-
         string name = parts[0];
 
-        name = name.Replace(".", "").Replace(",", "").Replace("!", "").Replace("?", "");
-
         return char.ToUpper(name[0]) + name.Substring(1);
-    }
-
-    string GenerateReply(string input)
-    {
-        input = input.ToLower();
-
-        string prefix = "";
-
-        if (!string.IsNullOrEmpty(userName))
-        {
-            prefix = userName + ", ";
-        }
-
-        if (input.Contains("work"))
-        {
-            return prefix + RandomChoice(
-                "yeah work never really changes does it. same thing different day",
-                "feels like all anyone does lately is work and sleep",
-                "i remember when work stayed at work, now it just follows you home"
-            );
-        }
-
-        if (input.Contains("weather"))
-        {
-            return prefix + RandomChoice(
-                "weather's been weird lately hasn't it",
-                "i swear it was freezing this morning and now it's warm again",
-                "can't even dress properly for it anymore, changes every five minutes"
-            );
-        }
-
-        if (input.Contains("tired") || input.Contains("stress"))
-        {
-            return prefix + RandomChoice(
-                "yeah i can hear that in how you're saying it",
-                "sounds like you've got a lot going on there",
-                "that's not easy to deal with, you alright?"
-            );
-        }
-
-        if (Random.value < 0.15f)
-        {
-            return prefix + RandomChoice(
-                "hang on i might've read that wrong",
-                "wait what do you mean by that exactly",
-                "you've lost me a bit there i'm not gonna lie"
-            );
-        }
-
-        if (recentMessages.Count > 0 && Random.value < 0.25f)
-        {
-            string memory = recentMessages[Random.Range(0, recentMessages.Count)];
-            return prefix + "earlier you said \"" + memory + "\" — did anything come of that?";
-        }
-
-        if (Random.value < 0.2f)
-        {
-            return prefix + RandomChoice(
-                "you know what, i was thinking about that earlier actually",
-                "funny you say that, reminds me of something",
-                "i get what you mean though, makes sense when you think about it"
-            );
-        }
-
-        return prefix + RandomChoice(
-            "yeah that sounds about right",
-            "i get what you're saying",
-            "makes sense when you put it like that",
-            "fair enough, can't argue with that"
-        );
     }
 
     string RandomChoice(params string[] options)
@@ -336,16 +361,7 @@ public class ChatManager : MonoBehaviour
 
     void CreateMessage(string text, bool isUser)
     {
-        GameObject prefab;
-
-        if (isUser)
-        {
-            prefab = userContainerPrefab;
-        }
-        else
-        {
-            prefab = aiContainerPrefab;
-        }
+        GameObject prefab = isUser ? userContainerPrefab : aiContainerPrefab;
 
         GameObject container = Instantiate(prefab, content);
         TextMeshProUGUI textComp = container.GetComponentInChildren<TextMeshProUGUI>();
@@ -370,17 +386,7 @@ public class ChatManager : MonoBehaviour
 
     void SaveConversation(string message, bool isUser)
     {
-        string entry;
-
-        if (isUser)
-        {
-            entry = "U:" + message + "||";
-        }
-        else
-        {
-            entry = "A:" + message + "||";
-        }
-
+        string entry = (isUser ? "U:" : "A:") + message + "||";
         PlayerPrefs.SetString(saveKey, PlayerPrefs.GetString(saveKey) + entry);
     }
 
@@ -388,19 +394,13 @@ public class ChatManager : MonoBehaviour
     {
         string history = PlayerPrefs.GetString(saveKey, "");
 
-        if (string.IsNullOrEmpty(history))
-        {
-            return;
-        }
+        if (string.IsNullOrEmpty(history)) return;
 
         string[] messages = history.Split("||");
 
         foreach (string msg in messages)
         {
-            if (string.IsNullOrEmpty(msg))
-            {
-                continue;
-            }
+            if (string.IsNullOrEmpty(msg)) continue;
 
             bool isUser = msg.StartsWith("U:");
             string text = msg.Substring(2);
@@ -418,6 +418,9 @@ public class ChatManager : MonoBehaviour
     public void ResetChat()
     {
         PlayerPrefs.DeleteAll();
+        PlayerPrefs.Save();
+
+        StopAllCoroutines();
 
         foreach (Transform child in content)
         {
@@ -428,9 +431,11 @@ public class ChatManager : MonoBehaviour
 
         userName = "";
         waitingForName = true;
-        didNameJoke = false;
-        postNameFollowUp = false;
+        inNameLoop = false;
+        reconnecting = false;
+        nameChangeCount = 0;
+        convoState = 0;
 
-        SendAIImmediate("hey kid! it's uncle bob. i'm just re-adding everyone's numbers because i swapped sims... i dunno, i don't understand this modern technology. what do you want me to save you as?");
+        SendAIImmediate("hey kid! it's uncle bob. i'm just re-adding everyone's numbers because i swapped sims... what do you want me to save you as?");
     }
 }
