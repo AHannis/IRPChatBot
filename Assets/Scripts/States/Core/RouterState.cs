@@ -212,10 +212,11 @@ public class RouterState : ChatState
         }
 
         if (
-            !chat.knowsUserAge
-            && !chat.askedAgeRecently
-            && chat.totalMessagesSent >= 4
-        )
+     chat.completedIntro
+     && !chat.knowsUserAge
+     && !chat.askedAgeRecently
+     && chat.totalMessagesSent >= 4
+ )
         {
             chat.askedAgeRecently = true;
 

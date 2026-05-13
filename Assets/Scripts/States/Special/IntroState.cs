@@ -2,7 +2,9 @@ using UnityEngine;
 
 public class IntroState : ChatState
 {
-    public IntroState(ChatManager manager) : base(manager)
+    public IntroState(
+        ChatManager manager
+    ) : base(manager)
     {
     }
 
@@ -15,10 +17,14 @@ public class IntroState : ChatState
         );
     }
 
-    public override string HandleInput(string input)
+    public override string HandleInput(
+        string input
+    )
     {
         string lower =
-            input.ToLower().Trim();
+            input
+            .ToLower()
+            .Trim();
 
         if (
             chat.ContainsAny(
@@ -48,10 +54,16 @@ public class IntroState : ChatState
         }
 
         string extractedName =
-            chat.analyser.ExtractNameFlexible(input);
+            chat.analyser
+            .ExtractNameFlexible(
+                input
+            );
 
         string cleanedName =
-            chat.analyser.CleanName(extractedName);
+            chat.analyser
+            .CleanName(
+                extractedName
+            );
 
         if (
             string.IsNullOrWhiteSpace(
@@ -72,13 +84,17 @@ public class IntroState : ChatState
         }
 
         if (
-            cleanedName.ToLower()
+            cleanedName
+            .ToLower()
             == "bob"
-            || cleanedName.ToLower()
+            || cleanedName
+            .ToLower()
             == "uncle bob"
-            || cleanedName.ToLower()
+            || cleanedName
+            .ToLower()
             == "dad"
-            || cleanedName.ToLower()
+            || cleanedName
+            .ToLower()
             == "mum"
         )
         {
@@ -92,6 +108,37 @@ public class IntroState : ChatState
                 "right okay comedian",
                 "you are absolutely messing with me already",
                 "starting strong with identity fraud"
+            );
+        }
+
+        if (
+            lower.Contains(
+                "power ranger"
+            )
+            || lower.Contains(
+                "wizard"
+            )
+            || lower.Contains(
+                "superhero"
+            )
+            || lower.Contains(
+                "batman"
+            )
+            || lower.Contains(
+                "spiderman"
+            )
+        )
+        {
+            chat.ChangeState(
+                new NameLoopState(chat)
+            );
+
+            return chat.RandomChoice(
+                "right okay superhero",
+                "i'm absolutely not saving you as that",
+                "you sound like a saturday morning cartoon character honestly",
+                "that sounds fake even by your standards",
+                "try again with a HUMAN name honestly"
             );
         }
 
@@ -127,28 +174,55 @@ public class IntroState : ChatState
             );
         }
 
-        if (
-            lower.Contains("power ranger")
-            || lower.Contains("wizard")
-            || lower.Contains("superhero")
-            || lower.Contains("batman")
-            || lower.Contains("spiderman")
+        string[] blockedWords =
+        {
+            "yes",
+            "yeah",
+            "yep",
+            "nah",
+            "no",
+            "okay",
+            "ok",
+            "sure",
+            "thanks",
+            "thankyou",
+            "hello",
+            "hi",
+            "hey",
+            "fair",
+            "real",
+            "true",
+            "valid",
+            "cool",
+            "nice",
+            "lol",
+            "lmao",
+            "mood"
+        };
+
+        foreach (
+            string blocked
+            in blockedWords
         )
         {
-            chat.ChangeState(
-                new NameLoopState(chat)
-            );
+            if (
+                cleanedName
+                .ToLower()
+                == blocked
+            )
+            {
+                chat.ChangeState(
+                    new NameLoopState(chat)
+                );
 
-            chat.userName =
-                cleanedName;
-
-            return chat.RandomChoice(
-                "right okay superhero",
-                "i'm absolutely not saving you as that",
-                "you sound like a saturday morning cartoon character honestly",
-                "that sounds fake even by your standards",
-                "try again with a HUMAN name honestly"
-            );
+                return chat.RandomChoice(
+                    "that's not helping honestly",
+                    "right but what's your NAME",
+                    "you know what i meant",
+                    "i'm trying to save a contact here",
+                    "actual name please detective"
+                );
+            }
         }
 
         chat.userName =
@@ -184,10 +258,16 @@ public class IntroState : ChatState
         );
 
         return chat.RandomChoice(
-            "alright " + chat.userName + ". saved.",
-            "perfect. i've got you as " + chat.userName + " now.",
+            "alright "
+            + chat.userName
+            + ". saved.",
+            "perfect. i've got you as "
+            + chat.userName
+            + " now.",
             "okay done. contact crisis resolved.",
-            "right i've saved you as " + chat.userName + "."
+            "right i've saved you as "
+            + chat.userName
+            + "."
         )
         + "\n\n"
         + chat.RandomChoice(

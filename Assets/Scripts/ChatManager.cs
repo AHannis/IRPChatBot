@@ -9,7 +9,7 @@ public class ChatManager : MonoBehaviour
     public ConversationAnalyser analyser;
 
     public EmojiParser emojiParser;
-
+    public bool completedIntro = false;
     public TypingDots typingDots;
 
     public TypingRef typingRef;
@@ -436,154 +436,101 @@ public class ChatManager : MonoBehaviour
             }
 
             if (
-                !string.IsNullOrEmpty(
-                    reflectiveReply
-                )
-            )
+     !string.IsNullOrEmpty(
+         reflectiveReply
+     )
+     && !(currentState is IntroState)
+     && !(currentState is NameLoopState)
+ )
             {
                 reply =
                     reflectiveReply;
             }
             else
             {
-                analyser.Analyse(
-                    input
-                );
-
-                if (
-                    IsLikelyName(input)
-
-                    )
-                    
-                
                 {
-                    userName =
-                        input.Trim();
-
-                    PlayerPrefs.SetString(
-                        "UserName",
-                        userName
-                    );
-
-                    reply = RandomChoice(
-                        "alright "
-                        + userName
-                        + ". i'll remember that",
-                        "nice to properly meet you "
-                        + userName,
-                        "right got you "
-                        + userName,
-                        userName
-                        + " honestly suits you"
-                    );
-                }
-                else if (
-                    analyser.IsShortReply(
+                    analyser.Analyse(
                         input
-                    )
-                    && Random.value < 0.35f
-                )
-                {
-                    reply = RandomChoice(
-                        "fair",
-                        "real",
-                        "yeah i get you",
-                        "that's rough",
-                        "valid",
-                        "sounds about right",
-                        "can't blame you",
-                        "damn",
-                        "true"
                     );
-                }
-                else
-                {
-                    if (
-                        !(currentState
-                        is RouterState)
-                    )
                     {
-                        ChangeState(
-                            new RouterState(
-                                this
-                            )
-                        );
-                    }
+                      
+                     
 
-                    reply =
-                        currentState
-                        .HandleInput(
-                            input
-                        );
+                        reply =
+                            currentState
+                            .HandleInput(
+                                input
+                            );
+                    }
                 }
             }
-        }
 
-        if (
-            recentAIReplies.Contains(
-                reply
+            if (
+                recentAIReplies.Contains(
+                    reply
+                )
+                || responseProcessor.StartsSimilar(
+                    reply,
+                    recentAIReplies
+                )
             )
-            || responseProcessor.StartsSimilar(
-                reply,
-                recentAIReplies
-            )
-        )
-        {
+            {
+                reply =
+                    GetNaturalReply();
+            }
+
             reply =
-                GetNaturalReply();
-        }
+                responseProcessor.ProcessResponse(
+                    reply,
+                    this
+                );
 
-        reply =
-            responseProcessor.ProcessResponse(
+            reply =
+                typingDots.AddOccasionalTypo(
+                    reply
+                );
+
+            recentAIReplies.Add(
+                reply
+            );
+
+            if (
+                recentAIReplies.Count > 10
+            )
+            {
+                recentAIReplies.RemoveAt(0);
+            }
+
+            lastAIMessage =
+                reply;
+
+            lastBotMessage =
+                reply;
+
+            int loops =
+                typingDots.CalculateTypingLoops(
+                    reply
+                );
+
+            yield return StartCoroutine(
+                typingDots.AnimateDots(
+                    loops
+                )
+            );
+
+            uiManager.CreateMessage(
                 reply,
+                false,
                 this
             );
 
-        reply =
-            typingDots.AddOccasionalTypo(
-                reply
+            persistence.SaveConversation(
+                reply,
+                false
             );
 
-        recentAIReplies.Add(
-            reply
-        );
-
-        if (
-            recentAIReplies.Count > 10
-        )
-        {
-            recentAIReplies.RemoveAt(0);
+            isProcessingResponse = false;
         }
-
-        lastAIMessage =
-            reply;
-
-        lastBotMessage =
-            reply;
-
-        int loops =
-            typingDots.CalculateTypingLoops(
-                reply
-            );
-
-        yield return StartCoroutine(
-            typingDots.AnimateDots(
-                loops
-            )
-        );
-
-        uiManager.CreateMessage(
-            reply,
-            false,
-            this
-        );
-
-        persistence.SaveConversation(
-            reply,
-            false
-        );
-
-        isProcessingResponse = false;
     }
 
     public void SendAIImmediate(
