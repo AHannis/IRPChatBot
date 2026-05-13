@@ -181,13 +181,10 @@ public class ChatBrain : MonoBehaviour
         return RandomChoice(
             "that's fair",
             "can't blame you",
-            "valid",
             "makes sense",
             "sounds about right",
             "yeah i get you",
             "that's understandable",
-            "true honestly though",
-            "real honestly",
             "i get that"
         );
     }
@@ -738,9 +735,10 @@ public class ChatBrain : MonoBehaviour
         }
 
         return RandomChoice(
-            "fair enough",
-            "sounds about right",
-            "yeah i get you"
-        );
+     "fair enough",
+     "that tracks",
+     "makes sense",
+     "can't blame you"
+ );
     }
 }

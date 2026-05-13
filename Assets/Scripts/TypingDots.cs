@@ -12,31 +12,7 @@ public class TypingDots : MonoBehaviour
 
     public Image dot3;
 
-    public IEnumerator PlayTyping(
-        string input,
-        string reply
-    )
-    {
-        float thinkTime =
-            CalculateThinkTime(
-                input
-            );
-
-        yield return new WaitForSeconds(
-            thinkTime
-        );
-
-        int loops =
-            CalculateTypingLoops(
-                reply
-            );
-
-        yield return StartCoroutine(
-            AnimateDots(
-                loops
-            )
-        );
-    }
+    string lastCorrection = "";
 
     public IEnumerator AnimateDots(
         int loops
@@ -82,173 +58,160 @@ public class TypingDots : MonoBehaviour
         typingUI.SetActive(false);
     }
 
-    public float CalculateThinkTime(
-        string input
+    public IEnumerator PlayTyping(
+        int loops
     )
     {
-        float thinkTime =
-            Random.Range(
-                0.3f,
-                0.8f
-            );
+        yield return StartCoroutine(
+            AnimateDots(
+                loops
+            )
+        );
+    }
 
-        if (
-            input.Length > 80
-        )
-        {
-            thinkTime +=
-                Random.Range(
-                    0.6f,
-                    1.4f
-                );
-        }
-
-        string lower =
-            input.ToLower();
-
-        if (
-            lower.Contains("sad")
-            || lower.Contains("upset")
-            || lower.Contains("stressed")
-            || lower.Contains("crying")
-            || lower.Contains("depressed")
-            || lower.Contains("lonely")
-            || lower.Contains("love")
-            || lower.Contains("relationship")
-        )
-        {
-            thinkTime +=
-                Random.Range(
-                    0.8f,
-                    1.8f
-                );
-        }
-
-        return thinkTime;
+    public IEnumerator PlayTyping()
+    {
+        yield return StartCoroutine(
+            AnimateDots(
+                2
+            )
+        );
     }
 
     public int CalculateTypingLoops(
         string reply
     )
     {
-        int loops =
-            Mathf.Clamp(
-                Mathf.RoundToInt(
-                    reply.Length / 18f
-                )
-                + Random.Range(
-                    1,
-                    4
-                ),
-                2,
-                12
+        int length =
+            reply.Length;
+
+        if (
+            length < 25
+        )
+        {
+            return 1;
+        }
+
+        if (
+            length < 70
+        )
+        {
+            return 2;
+        }
+
+        return 3;
+    }
+
+    public float CalculateThinkTime(
+        string input
+    )
+    {
+        float time =
+            0.4f
+            + (
+                input.Length
+                * 0.015f
             );
 
-        if (
-            reply.Contains("?")
-        )
-        {
-            loops -= 1;
-        }
-
-        if (
-            reply.Length > 120
-        )
-        {
-            loops += 2;
-        }
-
-        return loops;
+        return Mathf.Clamp(
+            time,
+            0.4f,
+            2.5f
+        );
     }
 
     public string AddOccasionalTypo(
         string text
     )
     {
+        lastCorrection = "";
+
         if (
-            Random.value > 0.12f
+            Random.value > 0.08f
         )
         {
             return text;
         }
 
-        string[] typoWords =
-        {
-            "probably",
-            "definitely",
-            "actually",
-            "because",
-            "weird",
-            "people",
-            "something",
-            "typing",
-            "conversation"
-        };
-
-        string[] typoVersions =
-        {
-            "probabaly",
-            "definitley",
-            "actaully",
-            "becuase",
-            "wierd",
-            "poeple",
-            "somthing",
-            "typign",
-            "converastion"
-        };
-
-        for (
-            int i = 0;
-            i < typoWords.Length;
-            i++
-        )
-        {
-            if (
-                text.ToLower().Contains(
-                    typoWords[i]
-                )
-            )
-            {
-                text =
-                    System.Text.RegularExpressions.Regex.Replace(
-                        text,
-                        typoWords[i],
-                        typoVersions[i],
-                        System.Text.RegularExpressions.RegexOptions.IgnoreCase
-                    );
-
-                return text;
-            }
-        }
-
         if (
-            text.Length > 12
-            && Random.value < 0.35f
+            text.Contains("what's")
         )
         {
-            int randomIndex =
-                Random.Range(
-                    4,
-                    text.Length - 3
+            text =
+                text.Replace(
+                    "what's",
+                    "thats"
                 );
 
-            char[] chars =
-                text.ToCharArray();
-
-            char temp =
-                chars[randomIndex];
-
-            chars[randomIndex] =
-                chars[randomIndex + 1];
-
-            chars[randomIndex + 1] =
-                temp;
-
+            lastCorrection =
+                "what's*";
+        }
+        else if (
+            text.Contains("whatever")
+        )
+        {
             text =
-                new string(chars);
+                text.Replace(
+                    "whatever",
+                    "what'ev"
+                );
+
+            lastCorrection =
+                "whatever*";
+        }
+        else if (
+            text.Contains("you're")
+        )
+        {
+            text =
+                text.Replace(
+                    "you're",
+                    "your"
+                );
+
+            lastCorrection =
+                "you're*";
+        }
+        else if (
+            text.Contains("that's")
+        )
+        {
+            text =
+                text.Replace(
+                    "that's",
+                    "thats"
+                );
+
+            lastCorrection =
+                "that's*";
+        }
+        else if (
+            text.Contains("been")
+        )
+        {
+            text =
+                text.Replace(
+                    "been",
+                    "beeen"
+                );
+
+            lastCorrection =
+                "been*";
         }
 
         return text;
+    }
+
+    public bool HasCorrection()
+    {
+        return
+            !string.IsNullOrEmpty(
+                lastCorrection
+            );
+    }
+
+    public string GetCorrection()
+    {
+        return lastCorrection;
     }
 }

@@ -127,11 +127,15 @@ public class CasualState : ChatState
             }
 
             return chat.RandomChoice(
-                "exactly",
-                "you get it",
-                "right?",
-                "see what i mean",
-                "honestly yeah"
+              "exactly " + chat.Emoji("laugh"),
+              "right? anyway what've you been up to lately?",
+              "you get it honestly",
+              "see what i mean though",
+             "yeah that's what i mean",
+                 "ANYWAY what's new with you?",
+             "right so what's been going on lately?",
+             "you still surviving at least?",
+                     "what chaos have you caused lately?"
             );
         }
 
@@ -169,13 +173,18 @@ public class CasualState : ChatState
 
         string topic =
             chat.ExtractTopic(input);
-
         if (
             !string.IsNullOrEmpty(topic)
-            && input.Split(' ').Length >= 5
+            && input.Split(' ').Length >= 6
+            && topic.Split(' ').Length >= 2
             && !lower.Contains("?")
             && !chat.IsShortReply(lower)
-            && UnityEngine.Random.value < 0.35f
+            && !chat.IsLikelyActivityResponse(input)
+            && !topic.StartsWith("not ")
+            && !topic.StartsWith("just ")
+            && !topic.StartsWith("yeah ")
+            && !topic.StartsWith("okay ")
+            && UnityEngine.Random.value < 0.20f
         )
         {
             chat.awaitingTopicShift =
@@ -183,10 +192,10 @@ public class CasualState : ChatState
 
             return chat.RandomChoice(
                 topic + " wasn't on my bingo card today",
-                "right but why does " + topic + " sound believable coming from you",
-                topic + " is a very strange sentence honestly",
+                "why does " + topic + " sound believable coming from you",
                 "i have several questions about " + topic,
-                "you say things like " + topic + " way too casually"
+                topic + " sounds oddly specific",
+                "that's a strange sentence out of context"
             );
         }
 
@@ -228,10 +237,10 @@ public class CasualState : ChatState
         }
 
         if (
-            lower == "how are you"
-            || lower == "and you"
-            || lower == "you?"
-        )
+    chat.IsReciprocalResponse(
+        lower
+    )
+)
         {
             string reply =
                 chat.RandomChoice(
@@ -271,8 +280,8 @@ public class CasualState : ChatState
         }
 
         if (
-            casualExchanges >= 5
-        )
+    casualExchanges >= 5
+)
         {
             casualExchanges = 0;
 
@@ -280,18 +289,41 @@ public class CasualState : ChatState
                 chat.GetConversationContinuation();
         }
 
-        string finalReply =
-            chat.GetNaturalReply();
-
         if (
-            UnityEngine.Random.value
-            < 0.22f
+            UnityEngine.Random.value < 0.12f
+            && !chat.storyActive
         )
         {
-            finalReply +=
-                ". "
-                + chat.GetDynamicFollowUp();
+            chat.ChangeState(
+                new UncleStoryState(chat)
+            );
+
+            return chat.RandomChoice(
+                "you know what happened earlier?",
+                "right i've gotta tell you this",
+                "okay funniest thing happened earlier",
+                "actually listen to this",
+                "speaking of chaos"
+            );
         }
+
+        if (
+            UnityEngine.Random.value < 0.45f
+        )
+        {
+            return chat.RandomChoice(
+                "anyway what've you been up to lately?",
+                "so what's been going on with you then?",
+                "what's new with you lately?",
+                "anything interesting happened lately?",
+                "you been doing anything fun recently?",
+                "what's the latest chaos in your life?",
+                "life been alright lately?"
+            );
+        }
+
+        string finalReply =
+            chat.GetNaturalReply();
 
         return
             chat.MaybeAddName(

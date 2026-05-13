@@ -84,11 +84,66 @@ public class TypingRef : MonoBehaviour
         "cool",
         "weird",
         "tired",
-        "okay",
-        "fine",
         "nice",
+        "pretty",
+        "much",
+        "sounds",
+        "lot",
         "actually",
-        "literally"
+        "caught",
+        "guard",
+        "happening",
+        "lately",
+        "then",
+        "writing",
+        "nothing",
+        "everything",
+        "literally",
+        "question",
+        "questions",
+        "mean",
+        "meant",
+        "what",
+        "why",
+        "huh",
+        "explain",
+        "true",
+        "fair",
+        "real",
+        "honestly",
+        "though",
+        "basically",
+        "probably",
+        "maybe",
+        "randomly",
+        "anyways",
+        "anywayyy",
+        "alright",
+        "okayyy",
+        "yknow",
+        "guess",
+        "sorta",
+        "kinda"
+    };
+
+    string[] blockedTopics =
+    {
+        "pretty much",
+        "sounds right",
+        "about right",
+        "not lot",
+        "just writing",
+        "yeah haha",
+        "fair enough",
+        "sounds about",
+        "been happening",
+        "good hear",
+        "hear again",
+        "yeah here",
+        "pretty much",
+        "not gonna",
+        "caught guard",
+        "sounds like"
     };
 
     public string GenerateReflectiveResponse(
@@ -98,6 +153,32 @@ public class TypingRef : MonoBehaviour
     {
         string lower =
             input.ToLower();
+
+        if (
+            lower.Contains(
+                "what was the question"
+            )
+            || lower.Contains(
+                "what question"
+            )
+            || lower.Contains(
+                "which question"
+            )
+            || lower.Contains(
+                "what do you mean"
+            )
+            || lower.Contains(
+                "huh"
+            )
+            || lower.Contains(
+                "explain"
+            )
+            || lower == "what"
+            || lower == "why"
+        )
+        {
+            return "";
+        }
 
         if (
             chat.analyser.ContainsAny(
@@ -115,7 +196,9 @@ public class TypingRef : MonoBehaviour
                 "right",
                 "fine",
                 "fair",
-                "true"
+                "true",
+                "pretty much",
+                "sounds about right"
             )
         )
         {
@@ -166,7 +249,7 @@ public class TypingRef : MonoBehaviour
             );
 
         if (
-            Random.value < 0.25f
+            Random.value < 0.18f
             && Time.time > followUpCooldown
         )
         {
@@ -196,7 +279,22 @@ public class TypingRef : MonoBehaviour
             );
 
         if (
-            lower.Split(' ').Length <= 2
+            lower.Split(' ').Length <= 3
+        )
+        {
+            return "";
+        }
+
+        if (
+            lower.Contains(
+                "what was the question"
+            )
+            || lower.Contains(
+                "what question"
+            )
+            || lower.Contains(
+                "which question"
+            )
         )
         {
             return "";
@@ -217,23 +315,51 @@ public class TypingRef : MonoBehaviour
         );
 
         if (
-            words.Count == 0
+            words.Count <= 1
         )
         {
             return "";
         }
 
-        if (
-            words.Count >= 2
+        string combined =
+            words[0]
+            + " "
+            + words[1];
+
+        foreach (
+            string blocked
+            in blockedTopics
         )
         {
-            return
-                words[0]
-                + " "
-                + words[1];
+            if (
+                combined.Contains(
+                    blocked
+                )
+            )
+            {
+                return "";
+            }
         }
 
-        return words[0];
+        if (
+            combined.StartsWith(
+                "not "
+            )
+            || combined.StartsWith(
+                "just "
+            )
+            || combined.StartsWith(
+                "yeah "
+            )
+            || combined.StartsWith(
+                "okay "
+            )
+        )
+        {
+            return "";
+        }
+
+        return combined;
     }
 
     public string ReflectTopic(
@@ -248,11 +374,11 @@ public class TypingRef : MonoBehaviour
             "you've been into " + topic + " lately?",
             topic + " again?",
             topic + " sounds concerning",
-            "i feel like there's a story behind the " + topic + " thing",
+            "i feel like there's a story behind the " + topic,
             topic + "? elaborate immediately",
             "not gonna lie the " + topic + " thing caught me off guard",
-            "right but why are we talking about " + topic,
-            topic + " is a very strange hobby",
+            "why are we talking about " + topic,
+            topic + " is oddly specific",
             "you say things like " + topic + " so casually"
         );
     }

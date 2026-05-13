@@ -292,12 +292,14 @@ public class ChatManager : MonoBehaviour
             yield break;
         }
 
-        yield return StartCoroutine(
-     typingDots.PlayTyping(
-         input,
-         ""
-     )
- );
+        float thinkTime =
+            typingDots.CalculateThinkTime(
+                input
+            );
+
+        yield return new WaitForSeconds(
+            thinkTime
+        );
 
         string reply = "";
 
@@ -414,12 +416,17 @@ public class ChatManager : MonoBehaviour
         lastBotMessage =
             reply;
 
+        int loops =
+            typingDots.CalculateTypingLoops(
+                reply
+            );
+
         yield return StartCoroutine(
-     typingDots.PlayTyping(
-         input,
-         reply
-     )
- );
+            typingDots.PlayTyping(
+                loops
+            )
+        );
+
         uiManager.CreateMessage(
             reply,
             false,
@@ -430,6 +437,33 @@ public class ChatManager : MonoBehaviour
             reply,
             false
         );
+
+        if (
+            typingDots.HasCorrection()
+            && Random.value < 0.8f
+        )
+        {
+            yield return new WaitForSeconds(
+                Random.Range(
+                    0.4f,
+                    1.2f
+                )
+            );
+
+            string correction =
+                typingDots.GetCorrection();
+
+            uiManager.CreateMessage(
+                correction,
+                false,
+                this
+            );
+
+            persistence.SaveConversation(
+                correction,
+                false
+            );
+        }
 
         isProcessingResponse = false;
     }
@@ -577,7 +611,7 @@ public class ChatManager : MonoBehaviour
 
         return RandomChoice(
             playerData.userName + ", " + text,
-            text + " honestly " + playerData.userName,
+            text + " " + playerData.userName,
             text + " though " + playerData.userName
         );
     }
@@ -674,9 +708,10 @@ public class ChatManager : MonoBehaviour
 
         return "";
     }
+
     public string ExtractTopic(
-    string input
-)
+        string input
+    )
     {
         return typingRef.ExtractTopic(
             input
@@ -755,12 +790,14 @@ public class ChatManager : MonoBehaviour
             )
             || lower.Split(' ').Length <= 5;
     }
+
     public bool ShouldMisread()
     {
         return
             playerData.relationshipLevel > 5
             && Random.value < 0.015f;
     }
+
     public Mood currentMood
     {
         get

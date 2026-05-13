@@ -358,9 +358,14 @@ public class ConversationAnalyser : MonoBehaviour
         params string[] words
     )
     {
-        foreach (string w in words)
+        foreach (
+            string w
+            in words
+        )
         {
-            if (input.Contains(w))
+            if (
+                input.Contains(w)
+            )
             {
                 return true;
             }
@@ -374,7 +379,10 @@ public class ConversationAnalyser : MonoBehaviour
         params string[] words
     )
     {
-        foreach (string word in words)
+        foreach (
+            string word
+            in words
+        )
         {
             if (
                 input.Contains(word)
@@ -430,6 +438,15 @@ public class ConversationAnalyser : MonoBehaviour
         string lower =
             input.ToLower().Trim();
 
+        lower =
+            lower
+            .Replace("?", "")
+            .Replace("!", "")
+            .Replace(".", "")
+            .Replace(",", "")
+            .Replace(":", "")
+            .Replace(";", "");
+
         return
             lower == "yeah"
             || lower == "yea"
@@ -447,7 +464,10 @@ public class ConversationAnalyser : MonoBehaviour
             || lower == "true"
             || lower == "real"
             || lower == "lmao"
-            || lower == "lol";
+            || lower == "lol"
+            || lower == "haha"
+            || lower == "yeah haha"
+            || lower == "true haha";
     }
 
     public bool IsLikelyName(
@@ -489,7 +509,9 @@ public class ConversationAnalyser : MonoBehaviour
             in blockedNameWords
         )
         {
-            if (trimmed == word)
+            if (
+                trimmed == word
+            )
             {
                 return false;
             }
@@ -677,18 +699,33 @@ public class ConversationAnalyser : MonoBehaviour
         string lower
     )
     {
-        lower = lower.Trim();
+        lower =
+            lower
+            .ToLower()
+            .Trim();
+
+        lower =
+            lower
+            .Replace("?", "")
+            .Replace("!", "")
+            .Replace(".", "")
+            .Replace(",", "")
+            .Replace(":", "")
+            .Replace(";", "")
+            .Replace(")", "")
+            .Replace("(", "");
 
         return
             lower == "and you"
-            || lower == "and you?"
-            || lower == "you?"
+            || lower == "you"
             || lower == "hbu"
             || lower == "how about you"
             || lower == "what about you"
             || lower == "how are you"
-            || lower == "how've you been"
-            || lower == "how have you been";
+            || lower == "howve you been"
+            || lower == "how have you been"
+            || lower == "and you haha"
+            || lower == "and you lol";
     }
 
     public string ExtractNameFlexible(
