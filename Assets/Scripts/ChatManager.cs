@@ -1,76 +1,300 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class ChatManager : MonoBehaviour
 {
-    public Transform content;
-    public GameObject userContainerPrefab;
-    public GameObject aiContainerPrefab;
+    public ConversationAnalyser analyser;
 
-    public ScrollRect scrollRect;
+    public EmojiParser emojiParser;
+
+    public TypingDots typingDots;
+
+    public TypingRef typingRef;
+
+    public ConversationPersistence persistence;
+
+    public ResponseProcessor responseProcessor;
+
+    public MemorySystem memorySystem;
+
+    public MessageUIManager uiManager;
+
+    public ChatBrain brain;
+
     public TMP_InputField inputField;
 
-    public GameObject typingUI;
-    public Image dot1;
-    public Image dot2;
-    public Image dot3;
+    [HideInInspector]
+    public string lastBotMessage = "";
 
-    string saveKey = "ChatHistory";
+    public enum Mood
+    {
+        Neutral,
+        Happy,
+        Concerned,
+        Playful,
+        Tired
+    }
 
-    List<string> recentMessages = new List<string>();
+    public Mood currentMood =
+        Mood.Neutral;
 
-    string userName = "";
-    bool userAtBottom = true;
+    public ChatState currentState;
 
-    bool waitingForName = false;
-    bool inNameLoop = false;
-    bool reconnecting = false;
+    public int exchangesSinceQuestion = 0;
 
-    int nameChangeCount = 0;
-    int convoState = 0;
+    public int relationshipLevel = 0;
+
+    public int userAge = -1;
+
+    public int emotionPersistence = 0;
+
+    public int emotionLoops = 0;
+
+    public int exchangesSinceFamilyQuestion = 10;
+
+    public int exchangesSinceGamingQuestion = 10;
+
+    public int exchangesSinceVisitQuestion = 10;
+
+    public int totalMessagesSent = 0;
+
+    public int activeStoryStep = 0;
+
+    public int contextStep = 0;
+
+    public bool knowsUserAge = false;
+
+    public bool askedAgeRecently = false;
+
+    public bool awaitingFunnyStory = false;
+
+    public bool waitingForSlangExplanation = false;
+
+    public bool isProcessingResponse = false;
+
+    public bool storyActive = false;
+
+    public string pendingSlangWord = "";
+
+    public string lastEmotion = "";
+
+    public string lifeStage = "";
+
+    public string lastTopic = "";
+
+    public string previousTopic = "";
+
+    public string lastUserMessage = "";
+
+    public string lastAIMessage = "";
+
+    public string userName = "";
+
+    public string currentConversationContext = "";
+
+    public string activeStory = "";
+
+    public float lastMessageTime = 0f;
+
+    public float followUpCooldown = 0f;
+
+    public float callbackChance = 0.2f;
+
+    public float chaosLevel = 0f;
+
+    public List<string> recentMessages =
+        new List<string>();
+
+    public List<string> recentAIReplies =
+        new List<string>();
+
+    public List<string> rememberedTopics =
+        new List<string>();
+
+    void Awake()
+    {
+        brain =
+            GetComponent<ChatBrain>();
+
+        analyser =
+            GetComponent<ConversationAnalyser>();
+    }
 
     void Start()
     {
-        scrollRect.onValueChanged.AddListener(OnScrollChanged);
+        memorySystem.LoadMemories();
 
-        LoadConversation();
+        persistence.LoadConversation(
+            this
+        );
 
-        userName = PlayerPrefs.GetString("UserName", "");
+        uiManager.SetupScrollListener();
 
-        if (!PlayerPrefs.HasKey("HasChattedBefore"))
+        LoadPlayerData();
+
+        if (
+            !PlayerPrefs.HasKey(
+                "HasChattedBefore"
+            )
+        )
         {
-            SendAIImmediate("hey kid! it's uncle bob. i'm just re-adding everyone's numbers because i swapped sims... what do you want me to save you as?");
-            PlayerPrefs.SetInt("HasChattedBefore", 1);
-            waitingForName = true;
+            PlayerPrefs.SetInt(
+                "HasChattedBefore",
+                1
+            );
+
+            ChangeState(
+                new IntroState(this)
+            );
         }
         else
         {
-            SendAIImmediate("haven't heard from you in a while, you okay?");
-            reconnecting = true;
+            ChangeState(
+                new ReconnectState(this)
+            );
         }
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Return))
+        if (
+            Input.GetKeyDown(
+                KeyCode.Return
+            )
+        )
         {
             OnSendButton();
         }
     }
 
-    void OnScrollChanged(Vector2 pos)
+    void OnDisable()
     {
-        userAtBottom = scrollRect.verticalNormalizedPosition <= 0.05f;
+        SaveStateData();
+    }
+
+    void OnApplicationQuit()
+    {
+        SaveStateData();
+    }
+
+    void LoadPlayerData()
+    {
+        userName =
+            PlayerPrefs.GetString(
+                "UserName",
+                ""
+            );
+
+        relationshipLevel =
+            PlayerPrefs.GetInt(
+                "RelationshipLevel",
+                0
+            );
+
+        lastTopic =
+            PlayerPrefs.GetString(
+                "LastTopic",
+                ""
+            );
+
+        currentMood =
+            (Mood)PlayerPrefs.GetInt(
+                "CurrentMood",
+                0
+            );
+
+        userAge =
+            PlayerPrefs.GetInt(
+                "UserAge",
+                -1
+            );
+
+        knowsUserAge =
+            PlayerPrefs.GetInt(
+                "KnowsUserAge",
+                0
+            ) == 1;
+
+        lifeStage =
+            PlayerPrefs.GetString(
+                "LifeStage",
+                ""
+            );
+    }
+
+    void SaveStateData()
+    {
+        PlayerPrefs.SetInt(
+            "RelationshipLevel",
+            relationshipLevel
+        );
+
+        PlayerPrefs.SetString(
+            "LastTopic",
+            lastTopic
+        );
+
+        PlayerPrefs.SetInt(
+            "CurrentMood",
+            (int)currentMood
+        );
+
+        PlayerPrefs.SetInt(
+            "UserAge",
+            userAge
+        );
+
+        PlayerPrefs.SetInt(
+            "KnowsUserAge",
+            knowsUserAge ? 1 : 0
+        );
+
+        PlayerPrefs.SetString(
+            "LifeStage",
+            lifeStage
+        );
+
+        memorySystem.SaveMemories();
+
+        PlayerPrefs.Save();
+    }
+
+    public void ChangeState(
+        ChatState newState
+    )
+    {
+        if (currentState != null)
+        {
+            currentState.Exit();
+        }
+
+        currentState =
+            newState;
+
+        if (currentState != null)
+        {
+            currentState.Enter();
+        }
     }
 
     public void OnSendButton()
     {
-        string message = inputField.text;
+        if (isProcessingResponse)
+        {
+            return;
+        }
 
-        if (string.IsNullOrWhiteSpace(message))
+        string message =
+            inputField.text;
+
+        if (
+            string.IsNullOrWhiteSpace(
+                message
+            )
+        )
         {
             return;
         }
@@ -78,364 +302,725 @@ public class ChatManager : MonoBehaviour
         SendUserMessage(message);
 
         inputField.text = "";
+
         inputField.ActivateInputField();
     }
 
-    public void SendUserMessage(string message)
+    public void SendUserMessage(
+        string message
+    )
     {
-        CreateMessage(message, true);
-        SaveConversation(message, true);
+        message =
+            emojiParser.ParseEmojiText(
+                message
+            );
 
-        recentMessages.Add(message);
+        uiManager.CreateMessage(
+            message,
+            true,
+            this
+        );
 
-        if (recentMessages.Count > 6)
+        persistence.SaveConversation(
+            message,
+            true
+        );
+
+        recentMessages.Add(
+            message
+        );
+
+        if (
+            recentMessages.Count > 10
+        )
         {
             recentMessages.RemoveAt(0);
         }
 
-        StartCoroutine(SendAIResponse(message));
+        lastUserMessage =
+            message;
+
+        previousTopic =
+            lastTopic;
+
+        StartCoroutine(
+            ProcessAIResponse(
+                message
+            )
+        );
     }
 
-    IEnumerator SendAIResponse(string userInput)
+    IEnumerator ProcessAIResponse(
+     string input
+ )
     {
-        yield return new WaitForSeconds(Random.Range(0.3f, 0.8f));
+        isProcessingResponse = true;
 
-        string reply = HandleConversation(userInput);
-
-        int loops = Mathf.Clamp((reply.Length / 20) + Random.Range(0, 3), 2, 10);
-
-        yield return StartCoroutine(AnimateDots(loops));
-
-        yield return new WaitForSeconds(Random.Range(0.2f, 0.5f));
-
-        CreateMessage(reply, false);
-        SaveConversation(reply, false);
-
-        yield return StartCoroutine(SmartScroll());
-    }
-
-    IEnumerator AnimateDots(int loops)
-    {
-        typingUI.SetActive(true);
-
-        for (int i = 0; i < loops; i++)
+        if (currentState == null)
         {
-            dot1.enabled = true;
-            dot2.enabled = false;
-            dot3.enabled = false;
-            yield return new WaitForSeconds(0.3f);
+            isProcessingResponse = false;
 
-            dot1.enabled = true;
-            dot2.enabled = true;
-            dot3.enabled = false;
-            yield return new WaitForSeconds(0.3f);
-
-            dot1.enabled = true;
-            dot2.enabled = true;
-            dot3.enabled = true;
-            yield return new WaitForSeconds(0.3f);
-
-            dot1.enabled = false;
-            dot2.enabled = false;
-            dot3.enabled = false;
+            yield break;
         }
 
-        typingUI.SetActive(false);
-    }
+        float thinkTime =
+            typingDots.CalculateThinkTime(
+                input
+            );
 
-    string HandleConversation(string input)
-    {
-        string lower = input.ToLower();
+        yield return new WaitForSeconds(
+            thinkTime
+        );
 
-        if (reconnecting)
+        string reply = "";
+
+        if (
+            analyser.ContainsWeirdInput(
+                input.ToLower(),
+                this
+            )
+        )
         {
-            reconnecting = false;
+            string detected =
+                analyser.GetDetectedWeirdWord(
+                    input.ToLower()
+                );
 
-            if (ContainsAny(lower, "good", "fine", "okay"))
+            if (
+                memorySystem.HasMemory(
+                    "slang_" + detected
+                )
+            )
             {
-                return "good, just making sure. what have you been up to?";
-            }
-
-            if (ContainsAny(lower, "tired", "meh", "bored"))
-            {
-                return "yeah you sound it. been a long few days has it?";
-            }
-
-            return "alright, just checking in. what have you been up to?";
-        }
-
-        if (waitingForName && string.IsNullOrEmpty(userName))
-        {
-            userName = CleanName(input);
-            PlayerPrefs.SetString("UserName", userName);
-
-            waitingForName = false;
-            inNameLoop = true;
-            nameChangeCount = 0;
-
-            return "alright " + userName + ". saved.";
-        }
-
-        if (inNameLoop && ContainsAny(lower, "call me", "jk", "changed", "nah"))
-        {
-            string newName = ExtractNameFlexible(input);
-            nameChangeCount++;
-
-            if (nameChangeCount < 5)
-            {
-                return "alright " + newName + " then";
+                reply = RandomChoice(
+                    "wait i've heard that one before",
+                    detected
+                    + " means "
+                    + memorySystem.Recall(
+                        "slang_" + detected
+                    )
+                    + " right?",
+                    "see i'm learning your weird language now",
+                    "oh i actually remember that one now"
+                );
             }
             else
             {
-                userName = CleanName(newName);
-                PlayerPrefs.SetString("UserName", userName);
+                waitingForSlangExplanation =
+                    true;
 
-                inNameLoop = false;
-                convoState = 1;
+                pendingSlangWord =
+                    detected;
 
-                return "okay i'm saving it as " + userName;
-            }
-        }
-
-        if (inNameLoop && ContainsAny(lower, "stick", "keep", "that one", "this one"))
-        {
-            inNameLoop = false;
-            convoState = 1;
-
-            return "alright, sticking with " + userName + ". how are you anyway?";
-        }
-
-        if (inNameLoop && IsLikelyName(input))
-        {
-            userName = CleanName(input);
-            PlayerPrefs.SetString("UserName", userName);
-
-            inNameLoop = false;
-            convoState = 1;
-
-            return "alright " + userName + ". locking that in now";
-        }
-
-        if (inNameLoop)
-        {
-            return "you changing it again or sticking with that one?";
-        }
-
-        if (ContainsAny(lower, "call me"))
-        {
-            string newName = ExtractNameFlexible(input);
-
-            userName = CleanName(newName);
-            PlayerPrefs.SetString("UserName", userName);
-
-            return "okay i'll call you " + userName + ". how are you anyway?";
-        }
-
-        if (convoState == 5)
-        {
-            if (ContainsFuzzy(lower, "chocolate", "cake", "biscuits", "cookies", "crisps"))
-            {
-                convoState = 6;
-                return "i'm sure i can get that in for you";
-            }
-
-            if (ContainsFuzzy(lower, "poo", "glass", "dog"))
-            {
-                convoState = 6;
-                return "alright enough messing about";
-            }
-
-            return "what do you fancy?";
-        }
-
-        return GenerateReply(input);
-    }
-
-    // ---------- SPELLING FIX ----------
-
-    int LevenshteinDistance(string a, string b)
-    {
-        int[,] dp = new int[a.Length + 1, b.Length + 1];
-
-        for (int i = 0; i <= a.Length; i++) dp[i, 0] = i;
-        for (int j = 0; j <= b.Length; j++) dp[0, j] = j;
-
-        for (int i = 1; i <= a.Length; i++)
-        {
-            for (int j = 1; j <= b.Length; j++)
-            {
-                int cost = (a[i - 1] == b[j - 1]) ? 0 : 1;
-
-                dp[i, j] = Mathf.Min(
-                    dp[i - 1, j] + 1,
-                    dp[i, j - 1] + 1,
-                    dp[i - 1, j - 1] + cost
+                reply = RandomChoice(
+                    "is that some kind of slang now?",
+                    "right you've completely lost me there",
+                    "what does "
+                    + pendingSlangWord
+                    + " even mean?",
+                    "i'm too old for this conversation"
                 );
             }
         }
-
-        return dp[a.Length, b.Length];
-    }
-
-    bool ContainsFuzzy(string input, params string[] words)
-    {
-        string[] parts = input.Split(' ');
-
-        foreach (string p in parts)
+        else
         {
-            foreach (string w in words)
+            string reflectiveReply = "";
+
+            if (Random.value < 0.1f)
             {
-                if (p.Contains(w) || LevenshteinDistance(p, w) <= 2)
+                reflectiveReply =
+                    typingRef.GenerateReflectiveResponse(
+                        input,
+                        this
+                    );
+            }
+
+            if (
+                !string.IsNullOrEmpty(
+                    reflectiveReply
+                )
+            )
+            {
+                reply =
+                    reflectiveReply;
+            }
+            else
+            {
+                analyser.Analyse(
+                    input
+                );
+
+                if (
+                    IsLikelyName(input)
+
+                    )
+                    
+                
                 {
-                    return true;
+                    userName =
+                        input.Trim();
+
+                    PlayerPrefs.SetString(
+                        "UserName",
+                        userName
+                    );
+
+                    reply = RandomChoice(
+                        "alright "
+                        + userName
+                        + ". i'll remember that",
+                        "nice to properly meet you "
+                        + userName,
+                        "right got you "
+                        + userName,
+                        userName
+                        + " honestly suits you"
+                    );
+                }
+                else if (
+                    analyser.IsShortReply(
+                        input
+                    )
+                    && Random.value < 0.35f
+                )
+                {
+                    reply = RandomChoice(
+                        "fair",
+                        "real",
+                        "yeah i get you",
+                        "that's rough",
+                        "valid",
+                        "sounds about right",
+                        "can't blame you",
+                        "damn",
+                        "true"
+                    );
+                }
+                else
+                {
+                    if (
+                        !(currentState
+                        is RouterState)
+                    )
+                    {
+                        ChangeState(
+                            new RouterState(
+                                this
+                            )
+                        );
+                    }
+
+                    reply =
+                        currentState
+                        .HandleInput(
+                            input
+                        );
                 }
             }
         }
 
-        return false;
-    }
-
-    // ---------- HELPERS ----------
-
-    bool IsLikelyName(string input)
-    {
-        string t = input.Trim();
-
-        if (t.Length > 12) return false;
-        if (t.Contains(" ")) return false;
-
-        if (ContainsAny(t.ToLower(), "ok", "yeah", "yes", "no"))
+        if (
+            recentAIReplies.Contains(
+                reply
+            )
+            || responseProcessor.StartsSimilar(
+                reply,
+                recentAIReplies
+            )
+        )
         {
-            return false;
+            reply =
+                GetNaturalReply();
         }
 
-        return true;
-    }
+        reply =
+            responseProcessor.ProcessResponse(
+                reply,
+                this
+            );
 
-    bool ContainsAny(string input, params string[] words)
-    {
-        foreach (string w in words)
+        reply =
+            typingDots.AddOccasionalTypo(
+                reply
+            );
+
+        recentAIReplies.Add(
+            reply
+        );
+
+        if (
+            recentAIReplies.Count > 10
+        )
         {
-            if (input.Contains(w)) return true;
+            recentAIReplies.RemoveAt(0);
         }
-        return false;
+
+        lastAIMessage =
+            reply;
+
+        lastBotMessage =
+            reply;
+
+        int loops =
+            typingDots.CalculateTypingLoops(
+                reply
+            );
+
+        yield return StartCoroutine(
+            typingDots.AnimateDots(
+                loops
+            )
+        );
+
+        uiManager.CreateMessage(
+            reply,
+            false,
+            this
+        );
+
+        persistence.SaveConversation(
+            reply,
+            false
+        );
+
+        isProcessingResponse = false;
     }
 
-    string GenerateReply(string input)
+    public void SendAIImmediate(
+        string message
+    )
     {
-        return RandomChoice(
-            "i get what you're saying",
-            "yeah that makes sense",
-            "fair enough",
-            "say more"
+        uiManager.CreateMessage(
+            message,
+            false,
+            this
+        );
+
+        persistence.SaveConversation(
+            message,
+            false
         );
     }
 
-    string ExtractNameFlexible(string input)
+    public string RandomChoice(
+        params string[] options
+    )
     {
-        string lower = input.ToLower();
+        return brain.RandomChoice(
+            options
+        );
+    }
 
-        if (lower.Contains("call me"))
+    public string GetGeneralFollowUp()
+    {
+        return brain.GetGeneralFollowUp();
+    }
+
+    public string GetNaturalReply()
+    {
+        return brain.GetNaturalReply();
+    }
+
+    public string GetSoftTopicShift()
+    {
+        return brain.GetSoftTopicShift();
+    }
+
+    public string GetTopicShiftLeadIn()
+    {
+        return brain.GetTopicShiftLeadIn();
+    }
+
+    public string ContinueActiveStory()
+    {
+        return brain.ContinueActiveStory();
+    }
+
+    public string GetRandomLifeEvent()
+    {
+        return brain.GetRandomLifeEvent();
+    }
+
+    public string GetRandomMemoryCallback()
+    {
+        return brain.GetRandomMemoryCallback();
+    }
+
+    public string GetFollowUpTopic()
+    {
+        return brain.GetGeneralFollowUp();
+    }
+
+    public bool ContainsGamingTerms(
+        string lower
+    )
+    {
+        return brain.ContainsGamingTerms(
+            lower
+        );
+    }
+
+    public bool ContainsUniTerms(
+        string lower
+    )
+    {
+        return brain.ContainsUniTerms(
+            lower
+        );
+    }
+
+    public bool ContainsSchoolTerms(
+        string lower
+    )
+    {
+        return brain.ContainsSchoolTerms(
+            lower
+        );
+    }
+
+    public bool ContainsHobbyTerms(
+        string lower
+    )
+    {
+        return brain.ContainsHobbyTerms(
+            lower
+        );
+    }
+
+    public bool HasActiveContext()
+    {
+        return
+            !string.IsNullOrEmpty(
+                currentConversationContext
+            );
+    }
+
+    public void SetContext(
+        string context
+    )
+    {
+        currentConversationContext =
+            context;
+
+        contextStep = 0;
+    }
+
+    public void ClearContext()
+    {
+        currentConversationContext =
+            "";
+
+        contextStep = 0;
+    }
+
+    public string MaybeAddName(
+        string text
+    )
+    {
+        if (
+            string.IsNullOrEmpty(
+                userName
+            )
+            || Random.value > 0.18f
+        )
         {
-            int i = lower.IndexOf("call me");
-            return input.Substring(i + 7).Trim();
+            return text;
         }
 
-        string[] parts = input.Split(' ');
-        return parts[parts.Length - 1];
+        return RandomChoice(
+            userName + ", " + text,
+            text + " honestly " + userName,
+            text + " though " + userName
+        );
     }
 
-    string CleanName(string raw)
+    public bool ContainsAny(
+        string input,
+        params string[] words
+    )
     {
-        raw = raw.Trim();
-        string[] parts = raw.Split(' ');
-        string name = parts[0];
-
-        return char.ToUpper(name[0]) + name.Substring(1);
+        return analyser.ContainsAny(
+            input,
+            words
+        );
     }
 
-    string RandomChoice(params string[] options)
+    public bool HasMemory(
+        string key
+    )
     {
-        return options[Random.Range(0, options.Length)];
+        return memorySystem.HasMemory(
+            key
+        );
     }
 
-    void CreateMessage(string text, bool isUser)
+    public string Recall(
+        string key
+    )
     {
-        GameObject prefab = isUser ? userContainerPrefab : aiContainerPrefab;
-
-        GameObject container = Instantiate(prefab, content);
-        TextMeshProUGUI textComp = container.GetComponentInChildren<TextMeshProUGUI>();
-
-        textComp.text = text;
-
-        StartCoroutine(SmartScroll());
+        return memorySystem.Recall(
+            key
+        );
     }
 
-    IEnumerator SmartScroll()
+    public void Remember(
+        string key,
+        string value
+    )
     {
-        yield return null;
-        yield return new WaitForEndOfFrame();
-
-        Canvas.ForceUpdateCanvases();
-
-        if (userAtBottom)
-        {
-            scrollRect.verticalNormalizedPosition = 0f;
-        }
-    }
-
-    void SaveConversation(string message, bool isUser)
-    {
-        string entry = (isUser ? "U:" : "A:") + message + "||";
-        PlayerPrefs.SetString(saveKey, PlayerPrefs.GetString(saveKey) + entry);
-    }
-
-    void LoadConversation()
-    {
-        string history = PlayerPrefs.GetString(saveKey, "");
-
-        if (string.IsNullOrEmpty(history)) return;
-
-        string[] messages = history.Split("||");
-
-        foreach (string msg in messages)
-        {
-            if (string.IsNullOrEmpty(msg)) continue;
-
-            bool isUser = msg.StartsWith("U:");
-            string text = msg.Substring(2);
-
-            CreateMessage(text, isUser);
-        }
-    }
-
-    public void SendAIImmediate(string message)
-    {
-        CreateMessage(message, false);
-        SaveConversation(message, false);
+        memorySystem.Remember(
+            key,
+            value
+        );
     }
 
     public void ResetChat()
     {
-        PlayerPrefs.DeleteAll();
-        PlayerPrefs.Save();
-
         StopAllCoroutines();
 
-        foreach (Transform child in content)
-        {
-            Destroy(child.gameObject);
-        }
+        PlayerPrefs.DeleteAll();
+
+        PlayerPrefs.Save();
+
+        uiManager.ClearMessages();
 
         recentMessages.Clear();
 
-        userName = "";
-        waitingForName = true;
-        inNameLoop = false;
-        reconnecting = false;
-        nameChangeCount = 0;
-        convoState = 0;
+        recentAIReplies.Clear();
 
-        SendAIImmediate("hey kid! it's uncle bob. i'm just re-adding everyone's numbers because i swapped sims... what do you want me to save you as?");
+        rememberedTopics.Clear();
+
+        memorySystem.ClearMemories();
+
+        userName = "";
+
+        relationshipLevel = 0;
+
+        lastTopic = "";
+
+        previousTopic = "";
+
+        currentMood =
+            Mood.Neutral;
+
+        currentConversationContext =
+            "";
+
+        ChangeState(
+            new IntroState(this)
+        );
+    }
+
+    public bool RecentlyMentioned(
+        string key
+    )
+    {
+        return
+            lastUserMessage
+            .ToLower()
+            .Contains(
+                key.ToLower()
+            );
+    }
+    public string GetConversationContinuation()
+    {
+        return brain.GetConversationContinuation();
+    }
+
+    public string GetDynamicFollowUp()
+    {
+        return brain.GetGeneralFollowUp();
+    }
+
+    public string Emoji(
+        string emojiName
+    )
+    {
+        switch (emojiName)
+        {
+            case "smile":
+                return "\U0001F642";
+
+            case "thumbsup":
+                return "\U0001F44D";
+
+            case "laugh":
+                return "\U0001F602";
+
+            case "cry":
+                return "\U0001F62D";
+
+            case "awkward":
+                return "\U0001F605";
+
+            case "facepalm":
+                return "\U0001F926";
+
+            case "thinking":
+                return "\U0001F914";
+        }
+
+        return "";
+    }
+    [HideInInspector]
+    public bool awaitingTopicShift = false;
+
+    [HideInInspector]
+    public string lastQuestionTopic = "";
+
+    public string ExtractTopic(
+        string input
+    )
+    {
+        return typingRef.ExtractTopic(
+            input
+        );
+    }
+
+    public bool IsShortReply(
+    string input
+)
+    {
+        return analyser.IsShortReply(
+            input
+        );
+    }
+
+    public bool IsLikelyName(
+    string input
+)
+    {
+        if (
+            !string.IsNullOrEmpty(
+                userName
+            )
+        )
+        {
+            return false;
+        }
+
+        string trimmed =
+            input
+            .Trim()
+            .ToLower();
+
+        if (
+            trimmed.Contains(" ")
+        )
+        {
+            return false;
+        }
+
+        if (
+            trimmed.Length < 2
+            || trimmed.Length > 14
+        )
+        {
+            return false;
+        }
+
+        string[] blockedWords =
+        {
+        "yes",
+        "yeah",
+        "yep",
+        "nah",
+        "no",
+        "okay",
+        "ok",
+        "sure",
+        "thanks",
+        "thankyou",
+        "hello",
+        "hi",
+        "hey",
+        "fair",
+        "real",
+        "true",
+        "valid",
+        "cool",
+        "nice",
+        "lol",
+        "lmao",
+        "mood"
+    };
+
+        foreach (string word in blockedWords)
+        {
+            if (trimmed == word)
+            {
+                return false;
+            }
+        }
+
+        return char.IsLetter(
+            trimmed[0]
+        );
+    }
+
+    public bool IsReciprocalResponse(
+        string input
+    )
+    {
+        return analyser.IsReciprocalResponse(
+            input
+        );
+    }
+
+    public string GenerateReflectiveResponse(
+        string input
+    )
+    {
+        return typingRef.GenerateReflectiveResponse(
+            input,
+            this
+        );
+    }
+
+    public bool IsAbsurdInput(
+        string input
+    )
+    {
+        return analyser.ContainsAny(
+            input.ToLower(),
+            "vampire",
+            "alien",
+            "wizard",
+            "immortal",
+            "ghost",
+            "demon",
+            "time traveller"
+        );
+    }
+
+    public bool IsLikelyActivityResponse(
+        string input
+    )
+    {
+        string lower =
+            input.ToLower();
+
+        return
+            ContainsAny(
+                lower,
+                "working",
+                "work",
+                "job",
+                "busy",
+                "gaming",
+                "watching",
+                "playing",
+                "studying",
+                "sleeping",
+                "eating"
+            )
+            || lower.Split(' ').Length <= 5;
+    }
+
+    public bool ShouldMisread()
+    {
+        return
+            relationshipLevel > 5
+            && Random.value < 0.015f;
     }
 }
