@@ -12,26 +12,43 @@ public class TypingDots : MonoBehaviour
 
     public Image dot3;
 
-    void Awake()
+    public IEnumerator PlayTyping(
+        string input,
+        string reply
+    )
     {
-        if (typingUI != null)
-        {
-            typingUI.SetActive(false);
-        }
+        float thinkTime =
+            CalculateThinkTime(
+                input
+            );
+
+        yield return new WaitForSeconds(
+            thinkTime
+        );
+
+        int loops =
+            CalculateTypingLoops(
+                reply
+            );
+
+        yield return StartCoroutine(
+            AnimateDots(
+                loops
+            )
+        );
     }
 
     public IEnumerator AnimateDots(
         int loops
     )
     {
-        if (typingUI == null)
-        {
-            yield break;
-        }
-
         typingUI.SetActive(true);
 
-        for (int i = 0; i < loops; i++)
+        for (
+            int i = 0;
+            i < loops;
+            i++
+        )
         {
             dot1.enabled = true;
             dot2.enabled = false;
@@ -70,12 +87,20 @@ public class TypingDots : MonoBehaviour
     )
     {
         float thinkTime =
-            Random.Range(0.3f, 0.8f);
+            Random.Range(
+                0.3f,
+                0.8f
+            );
 
-        if (input.Length > 80)
+        if (
+            input.Length > 80
+        )
         {
             thinkTime +=
-                Random.Range(0.6f, 1.4f);
+                Random.Range(
+                    0.6f,
+                    1.4f
+                );
         }
 
         string lower =
@@ -93,7 +118,10 @@ public class TypingDots : MonoBehaviour
         )
         {
             thinkTime +=
-                Random.Range(0.8f, 1.8f);
+                Random.Range(
+                    0.8f,
+                    1.8f
+                );
         }
 
         return thinkTime;
@@ -108,17 +136,24 @@ public class TypingDots : MonoBehaviour
                 Mathf.RoundToInt(
                     reply.Length / 18f
                 )
-                + Random.Range(1, 4),
+                + Random.Range(
+                    1,
+                    4
+                ),
                 2,
                 12
             );
 
-        if (reply.Contains("?"))
+        if (
+            reply.Contains("?")
+        )
         {
             loops -= 1;
         }
 
-        if (reply.Length > 120)
+        if (
+            reply.Length > 120
+        )
         {
             loops += 2;
         }
@@ -130,7 +165,9 @@ public class TypingDots : MonoBehaviour
         string text
     )
     {
-        if (Random.value > 0.12f)
+        if (
+            Random.value > 0.12f
+        )
         {
             return text;
         }
@@ -161,7 +198,11 @@ public class TypingDots : MonoBehaviour
             "converastion"
         };
 
-        for (int i = 0; i < typoWords.Length; i++)
+        for (
+            int i = 0;
+            i < typoWords.Length;
+            i++
+        )
         {
             if (
                 text.ToLower().Contains(

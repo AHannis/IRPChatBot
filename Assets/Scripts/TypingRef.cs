@@ -9,6 +9,88 @@ public class TypingRef : MonoBehaviour
 
     float followUpCooldown = 0f;
 
+    string[] ignoredWords =
+    {
+        "im",
+        "i",
+        "am",
+        "the",
+        "a",
+        "an",
+        "and",
+        "to",
+        "anyway",
+        "sing",
+        "with",
+        "me",
+        "please",
+        "can",
+        "could",
+        "would",
+        "should",
+        "want",
+        "go",
+        "come",
+        "tell",
+        "say",
+        "listen",
+        "look",
+        "been",
+        "still",
+        "just",
+        "really",
+        "very",
+        "like",
+        "is",
+        "are",
+        "was",
+        "were",
+        "have",
+        "has",
+        "had",
+        "ive",
+        "you",
+        "your",
+        "my",
+        "our",
+        "that",
+        "haha",
+        "lol",
+        "lmao",
+        "hehe",
+        "hahaha",
+        "yeah",
+        "yep",
+        "nah",
+        "okay",
+        "ok",
+        "right",
+        "sure",
+        "fine",
+        "time",
+        "this",
+        "with",
+        "from",
+        "about",
+        "because",
+        "thing",
+        "things",
+        "stuff",
+        "today",
+        "yesterday",
+        "tomorrow",
+        "good",
+        "bad",
+        "cool",
+        "weird",
+        "tired",
+        "okay",
+        "fine",
+        "nice",
+        "actually",
+        "literally"
+    };
+
     public string GenerateReflectiveResponse(
         string input,
         ChatManager chat
@@ -18,7 +100,7 @@ public class TypingRef : MonoBehaviour
             input.ToLower();
 
         if (
-            chat.ContainsAny(
+            chat.analyser.ContainsAny(
                 lower,
                 "yes",
                 "yeah",
@@ -41,26 +123,40 @@ public class TypingRef : MonoBehaviour
         }
 
         string topic =
-            ExtractTopic(input);
+            ExtractTopic(
+                input
+            );
 
-        if (string.IsNullOrEmpty(topic))
+        if (
+            string.IsNullOrEmpty(
+                topic
+            )
+        )
         {
             return "";
         }
 
         if (
-            recentTopics.Contains(topic)
+            recentTopics.Contains(
+                topic
+            )
             && Random.value < 0.7f
         )
         {
             return "";
         }
 
-        recentTopics.Add(topic);
+        recentTopics.Add(
+            topic
+        );
 
-        if (recentTopics.Count > 15)
+        if (
+            recentTopics.Count > 15
+        )
         {
-            recentTopics.RemoveAt(0);
+            recentTopics.RemoveAt(
+                0
+            );
         }
 
         string response =
@@ -76,7 +172,7 @@ public class TypingRef : MonoBehaviour
         {
             response +=
                 ". "
-                + chat.GetDynamicFollowUp();
+                + chat.brain.GetGeneralFollowUp();
 
             followUpCooldown =
                 Time.time + 35f;
@@ -106,88 +202,6 @@ public class TypingRef : MonoBehaviour
             return "";
         }
 
-        string[] ignore =
-        {
-            "im",
-            "i",
-            "am",
-            "the",
-            "a",
-            "an",
-            "and",
-            "to",
-            "anyway",
-            "sing",
-            "with",
-            "me",
-            "please",
-            "can",
-            "could",
-            "would",
-            "should",
-            "want",
-            "go",
-            "come",
-            "tell",
-            "say",
-            "listen",
-            "look",
-            "been",
-            "still",
-            "just",
-            "really",
-            "very",
-            "like",
-            "is",
-            "are",
-            "was",
-            "were",
-            "have",
-            "has",
-            "had",
-            "ive",
-            "you",
-            "your",
-            "my",
-            "our",
-            "that",
-            "haha",
-            "lol",
-            "lmao",
-            "hehe",
-            "hahaha",
-            "yeah",
-            "yep",
-            "nah",
-            "okay",
-            "ok",
-            "right",
-            "sure",
-            "fine",
-            "time",
-            "this",
-            "with",
-            "from",
-            "about",
-            "because",
-            "thing",
-            "things",
-            "stuff",
-            "today",
-            "yesterday",
-            "tomorrow",
-            "good",
-            "bad",
-            "cool",
-            "weird",
-            "tired",
-            "okay",
-            "fine",
-            "nice",
-            "actually",
-            "literally"
-        };
-
         List<string> words =
             new List<string>(
                 lower.Split(' ')
@@ -196,18 +210,22 @@ public class TypingRef : MonoBehaviour
         words.RemoveAll(
             w =>
                 System.Array.Exists(
-                    ignore,
+                    ignoredWords,
                     x => x == w
                 )
                 || w.Length <= 2
         );
 
-        if (words.Count == 0)
+        if (
+            words.Count == 0
+        )
         {
             return "";
         }
 
-        if (words.Count >= 2)
+        if (
+            words.Count >= 2
+        )
         {
             return
                 words[0]
@@ -237,5 +255,10 @@ public class TypingRef : MonoBehaviour
             topic + " is a very strange hobby",
             "you say things like " + topic + " so casually"
         );
+    }
+
+    public void ClearRecentTopics()
+    {
+        recentTopics.Clear();
     }
 }

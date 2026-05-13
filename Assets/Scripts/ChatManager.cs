@@ -9,7 +9,9 @@ public class ChatManager : MonoBehaviour
     public ConversationAnalyser analyser;
 
     public EmojiParser emojiParser;
+
     public bool completedIntro = false;
+
     public TypingDots typingDots;
 
     public TypingRef typingRef;
@@ -23,6 +25,8 @@ public class ChatManager : MonoBehaviour
     public MessageUIManager uiManager;
 
     public ChatBrain brain;
+
+    public PlayerDataManager playerData;
 
     public TMP_InputField inputField;
 
@@ -38,16 +42,9 @@ public class ChatManager : MonoBehaviour
         Tired
     }
 
-    public Mood currentMood =
-        Mood.Neutral;
-
     public ChatState currentState;
 
     public int exchangesSinceQuestion = 0;
-
-    public int relationshipLevel = 0;
-
-    public int userAge = -1;
 
     public int emotionPersistence = 0;
 
@@ -65,8 +62,6 @@ public class ChatManager : MonoBehaviour
 
     public int contextStep = 0;
 
-    public bool knowsUserAge = false;
-
     public bool askedAgeRecently = false;
 
     public bool awaitingFunnyStory = false;
@@ -81,8 +76,6 @@ public class ChatManager : MonoBehaviour
 
     public string lastEmotion = "";
 
-    public string lifeStage = "";
-
     public string lastTopic = "";
 
     public string previousTopic = "";
@@ -91,15 +84,11 @@ public class ChatManager : MonoBehaviour
 
     public string lastAIMessage = "";
 
-    public string userName = "";
-
     public string currentConversationContext = "";
 
     public string activeStory = "";
 
     public float lastMessageTime = 0f;
-
-    public float followUpCooldown = 0f;
 
     public float callbackChance = 0.2f;
 
@@ -113,6 +102,12 @@ public class ChatManager : MonoBehaviour
 
     public List<string> rememberedTopics =
         new List<string>();
+
+    [HideInInspector]
+    public bool awaitingTopicShift = false;
+
+    [HideInInspector]
+    public string lastQuestionTopic = "";
 
     void Awake()
     {
@@ -133,7 +128,7 @@ public class ChatManager : MonoBehaviour
 
         uiManager.SetupScrollListener();
 
-        LoadPlayerData();
+        playerData.LoadPlayerData();
 
         if (
             !PlayerPrefs.HasKey(
@@ -172,101 +167,25 @@ public class ChatManager : MonoBehaviour
 
     void OnDisable()
     {
-        SaveStateData();
+        playerData.SavePlayerData();
+
+        memorySystem.SaveMemories();
     }
 
     void OnApplicationQuit()
     {
-        SaveStateData();
-    }
-
-    void LoadPlayerData()
-    {
-        userName =
-            PlayerPrefs.GetString(
-                "UserName",
-                ""
-            );
-
-        relationshipLevel =
-            PlayerPrefs.GetInt(
-                "RelationshipLevel",
-                0
-            );
-
-        lastTopic =
-            PlayerPrefs.GetString(
-                "LastTopic",
-                ""
-            );
-
-        currentMood =
-            (Mood)PlayerPrefs.GetInt(
-                "CurrentMood",
-                0
-            );
-
-        userAge =
-            PlayerPrefs.GetInt(
-                "UserAge",
-                -1
-            );
-
-        knowsUserAge =
-            PlayerPrefs.GetInt(
-                "KnowsUserAge",
-                0
-            ) == 1;
-
-        lifeStage =
-            PlayerPrefs.GetString(
-                "LifeStage",
-                ""
-            );
-    }
-
-    void SaveStateData()
-    {
-        PlayerPrefs.SetInt(
-            "RelationshipLevel",
-            relationshipLevel
-        );
-
-        PlayerPrefs.SetString(
-            "LastTopic",
-            lastTopic
-        );
-
-        PlayerPrefs.SetInt(
-            "CurrentMood",
-            (int)currentMood
-        );
-
-        PlayerPrefs.SetInt(
-            "UserAge",
-            userAge
-        );
-
-        PlayerPrefs.SetInt(
-            "KnowsUserAge",
-            knowsUserAge ? 1 : 0
-        );
-
-        PlayerPrefs.SetString(
-            "LifeStage",
-            lifeStage
-        );
+        playerData.SavePlayerData();
 
         memorySystem.SaveMemories();
-
-        PlayerPrefs.Save();
     }
 
     public void ChangeState(
         ChatState newState
     )
     {
-        if (currentState != null)
+        if (
+            currentState != null
+        )
         {
             currentState.Exit();
         }
@@ -274,7 +193,9 @@ public class ChatManager : MonoBehaviour
         currentState =
             newState;
 
-        if (currentState != null)
+        if (
+            currentState != null
+        )
         {
             currentState.Enter();
         }
@@ -282,7 +203,9 @@ public class ChatManager : MonoBehaviour
 
     public void OnSendButton()
     {
-        if (isProcessingResponse)
+        if (
+            isProcessingResponse
+        )
         {
             return;
         }
@@ -299,7 +222,9 @@ public class ChatManager : MonoBehaviour
             return;
         }
 
-        SendUserMessage(message);
+        SendUserMessage(
+            message
+        );
 
         inputField.text = "";
 
@@ -334,7 +259,9 @@ public class ChatManager : MonoBehaviour
             recentMessages.Count > 10
         )
         {
-            recentMessages.RemoveAt(0);
+            recentMessages.RemoveAt(
+                0
+            );
         }
 
         lastUserMessage =
@@ -351,26 +278,26 @@ public class ChatManager : MonoBehaviour
     }
 
     IEnumerator ProcessAIResponse(
-     string input
- )
+        string input
+    )
     {
         isProcessingResponse = true;
 
-        if (currentState == null)
+        if (
+            currentState == null
+        )
         {
             isProcessingResponse = false;
 
             yield break;
         }
 
-        float thinkTime =
-            typingDots.CalculateThinkTime(
-                input
-            );
-
-        yield return new WaitForSeconds(
-            thinkTime
-        );
+        yield return StartCoroutine(
+     typingDots.PlayTyping(
+         input,
+         ""
+     )
+ );
 
         string reply = "";
 
@@ -426,7 +353,9 @@ public class ChatManager : MonoBehaviour
         {
             string reflectiveReply = "";
 
-            if (Random.value < 0.1f)
+            if (
+                Random.value < 0.1f
+            )
             {
                 reflectiveReply =
                     typingRef.GenerateReflectiveResponse(
@@ -436,101 +365,73 @@ public class ChatManager : MonoBehaviour
             }
 
             if (
-     !string.IsNullOrEmpty(
-         reflectiveReply
-     )
-     && !(currentState is IntroState)
-     && !(currentState is NameLoopState)
- )
+                !string.IsNullOrEmpty(
+                    reflectiveReply
+                )
+                && !(currentState is IntroState)
+                && !(currentState is NameLoopState)
+            )
             {
                 reply =
                     reflectiveReply;
             }
             else
             {
-                {
-                    analyser.Analyse(
+                analyser.Analyse(
+                    input
+                );
+
+                reply =
+                    currentState
+                    .HandleInput(
                         input
                     );
-                    {
-                      
-                     
-
-                        reply =
-                            currentState
-                            .HandleInput(
-                                input
-                            );
-                    }
-                }
             }
+        }
 
-            if (
-                recentAIReplies.Contains(
-                    reply
-                )
-                || responseProcessor.StartsSimilar(
-                    reply,
-                    recentAIReplies
-                )
-            )
-            {
-                reply =
-                    GetNaturalReply();
-            }
-
-            reply =
-                responseProcessor.ProcessResponse(
-                    reply,
-                    this
-                );
-
-            reply =
-                typingDots.AddOccasionalTypo(
-                    reply
-                );
-
-            recentAIReplies.Add(
-                reply
-            );
-
-            if (
-                recentAIReplies.Count > 10
-            )
-            {
-                recentAIReplies.RemoveAt(0);
-            }
-
-            lastAIMessage =
-                reply;
-
-            lastBotMessage =
-                reply;
-
-            int loops =
-                typingDots.CalculateTypingLoops(
-                    reply
-                );
-
-            yield return StartCoroutine(
-                typingDots.AnimateDots(
-                    loops
-                )
-            );
-
-            uiManager.CreateMessage(
+        reply =
+            responseProcessor.ProcessResponse(
                 reply,
-                false,
                 this
             );
 
-            persistence.SaveConversation(
-                reply,
-                false
-            );
+        recentAIReplies.Add(
+            reply
+        );
 
-            isProcessingResponse = false;
+        if (
+            recentAIReplies.Count > 10
+        )
+        {
+            recentAIReplies.RemoveAt(
+                0
+            );
         }
+
+        lastAIMessage =
+            reply;
+
+        lastBotMessage =
+            reply;
+
+        yield return StartCoroutine(
+     typingDots.PlayTyping(
+         input,
+         reply
+     )
+ );
+        uiManager.CreateMessage(
+            reply,
+            false,
+            this
+        );
+
+        persistence.SaveConversation(
+            reply,
+            false
+        );
+
+        isProcessingResponse = false;
     }
 
     public void SendAIImmediate(
@@ -666,7 +567,7 @@ public class ChatManager : MonoBehaviour
     {
         if (
             string.IsNullOrEmpty(
-                userName
+                playerData.userName
             )
             || Random.value > 0.18f
         )
@@ -675,9 +576,9 @@ public class ChatManager : MonoBehaviour
         }
 
         return RandomChoice(
-            userName + ", " + text,
-            text + " honestly " + userName,
-            text + " though " + userName
+            playerData.userName + ", " + text,
+            text + " honestly " + playerData.userName,
+            text + " though " + playerData.userName
         );
     }
 
@@ -689,35 +590,6 @@ public class ChatManager : MonoBehaviour
         return analyser.ContainsAny(
             input,
             words
-        );
-    }
-
-    public bool HasMemory(
-        string key
-    )
-    {
-        return memorySystem.HasMemory(
-            key
-        );
-    }
-
-    public string Recall(
-        string key
-    )
-    {
-        return memorySystem.Recall(
-            key
-        );
-    }
-
-    public void Remember(
-        string key,
-        string value
-    )
-    {
-        memorySystem.Remember(
-            key,
-            value
         );
     }
 
@@ -737,18 +609,15 @@ public class ChatManager : MonoBehaviour
 
         rememberedTopics.Clear();
 
+        typingRef.ClearRecentTopics();
+
         memorySystem.ClearMemories();
 
-        userName = "";
-
-        relationshipLevel = 0;
+        playerData.ResetPlayerData();
 
         lastTopic = "";
 
         previousTopic = "";
-
-        currentMood =
-            Mood.Neutral;
 
         currentConversationContext =
             "";
@@ -769,14 +638,10 @@ public class ChatManager : MonoBehaviour
                 key.ToLower()
             );
     }
+
     public string GetConversationContinuation()
     {
         return brain.GetConversationContinuation();
-    }
-
-    public string GetDynamicFollowUp()
-    {
-        return brain.GetGeneralFollowUp();
     }
 
     public string Emoji(
@@ -809,15 +674,9 @@ public class ChatManager : MonoBehaviour
 
         return "";
     }
-    [HideInInspector]
-    public bool awaitingTopicShift = false;
-
-    [HideInInspector]
-    public string lastQuestionTopic = "";
-
     public string ExtractTopic(
-        string input
-    )
+    string input
+)
     {
         return typingRef.ExtractTopic(
             input
@@ -825,93 +684,17 @@ public class ChatManager : MonoBehaviour
     }
 
     public bool IsShortReply(
-    string input
-)
+        string input
+    )
     {
         return analyser.IsShortReply(
             input
         );
     }
 
-    public bool IsLikelyName(
-    string input
-)
+    public string GetDynamicFollowUp()
     {
-        if (
-            !string.IsNullOrEmpty(
-                userName
-            )
-        )
-        {
-            return false;
-        }
-
-        string trimmed =
-            input
-            .Trim()
-            .ToLower();
-
-        if (
-            trimmed.Contains(" ")
-        )
-        {
-            return false;
-        }
-
-        if (
-            trimmed.Length < 2
-            || trimmed.Length > 14
-        )
-        {
-            return false;
-        }
-
-        string[] blockedWords =
-        {
-        "yes",
-        "yeah",
-        "yep",
-        "nah",
-        "no",
-        "okay",
-        "ok",
-        "sure",
-        "thanks",
-        "thankyou",
-        "hello",
-        "hi",
-        "hey",
-        "fair",
-        "real",
-        "true",
-        "valid",
-        "cool",
-        "nice",
-        "lol",
-        "lmao",
-        "mood"
-    };
-
-        foreach (string word in blockedWords)
-        {
-            if (trimmed == word)
-            {
-                return false;
-            }
-        }
-
-        return char.IsLetter(
-            trimmed[0]
-        );
-    }
-
-    public bool IsReciprocalResponse(
-        string input
-    )
-    {
-        return analyser.IsReciprocalResponse(
-            input
-        );
+        return brain.GetGeneralFollowUp();
     }
 
     public string GenerateReflectiveResponse(
@@ -921,6 +704,15 @@ public class ChatManager : MonoBehaviour
         return typingRef.GenerateReflectiveResponse(
             input,
             this
+        );
+    }
+
+    public bool IsReciprocalResponse(
+        string input
+    )
+    {
+        return analyser.IsReciprocalResponse(
+            input
         );
     }
 
@@ -963,11 +755,110 @@ public class ChatManager : MonoBehaviour
             )
             || lower.Split(' ').Length <= 5;
     }
-
     public bool ShouldMisread()
     {
         return
-            relationshipLevel > 5
+            playerData.relationshipLevel > 5
             && Random.value < 0.015f;
+    }
+    public Mood currentMood
+    {
+        get
+        {
+            return playerData.currentMood;
+        }
+        set
+        {
+            playerData.currentMood = value;
+        }
+    }
+
+    public int relationshipLevel
+    {
+        get
+        {
+            return playerData.relationshipLevel;
+        }
+        set
+        {
+            playerData.relationshipLevel = value;
+        }
+    }
+
+    public int userAge
+    {
+        get
+        {
+            return playerData.userAge;
+        }
+        set
+        {
+            playerData.userAge = value;
+        }
+    }
+
+    public bool knowsUserAge
+    {
+        get
+        {
+            return playerData.knowsUserAge;
+        }
+        set
+        {
+            playerData.knowsUserAge = value;
+        }
+    }
+
+    public string userName
+    {
+        get
+        {
+            return playerData.userName;
+        }
+        set
+        {
+            playerData.userName = value;
+        }
+    }
+
+    public string lifeStage
+    {
+        get
+        {
+            return playerData.lifeStage;
+        }
+        set
+        {
+            playerData.lifeStage = value;
+        }
+    }
+
+    public bool HasMemory(
+        string key
+    )
+    {
+        return memorySystem.HasMemory(
+            key
+        );
+    }
+
+    public string Recall(
+        string key
+    )
+    {
+        return memorySystem.Recall(
+            key
+        );
+    }
+
+    public void Remember(
+        string key,
+        string value
+    )
+    {
+        memorySystem.Remember(
+            key,
+            value
+        );
     }
 }

@@ -20,6 +20,48 @@ public class ConversationAnalyser : MonoBehaviour
 
     public int exchangesSinceVisitQuestion = 0;
 
+    string[] weirdInputs =
+    {
+        "skibidi",
+        "rizz",
+        "sus",
+        "yeet",
+        "gyatt",
+        "sigma",
+        "fanum",
+        "delulu",
+        "goated",
+        "ate",
+        "mid",
+        "npc"
+    };
+
+    string[] blockedNameWords =
+    {
+        "yes",
+        "yeah",
+        "yep",
+        "nah",
+        "no",
+        "okay",
+        "ok",
+        "sure",
+        "thanks",
+        "thankyou",
+        "hello",
+        "hi",
+        "hey",
+        "fair",
+        "real",
+        "true",
+        "valid",
+        "cool",
+        "nice",
+        "lol",
+        "lmao",
+        "mood"
+    };
+
     void Awake()
     {
         chat =
@@ -35,9 +77,9 @@ public class ConversationAnalyser : MonoBehaviour
 
         exchangesSinceVisitQuestion++;
 
-        HandleEmotionAnalysis(lower);
-
         DetectTopics(lower);
+
+        HandleEmotionAnalysis(lower);
     }
 
     void DetectTopics(
@@ -52,77 +94,98 @@ public class ConversationAnalyser : MonoBehaviour
         }
 
         if (
-            lower.Contains("family")
-            || lower.Contains("mum")
-            || lower.Contains("dad")
-            || lower.Contains("cousin")
-            || lower.Contains("nan")
-            || lower.Contains("grandad")
-            || lower.Contains("brother")
-            || lower.Contains("sister")
+            ContainsAny(
+                lower,
+                "family",
+                "mum",
+                "dad",
+                "cousin",
+                "nan",
+                "grandad",
+                "brother",
+                "sister"
+            )
         )
         {
             lastTopic = "family";
         }
 
         if (
-            lower.Contains("gaming")
-            || lower.Contains("game")
-            || lower.Contains("xbox")
-            || lower.Contains("playstation")
-            || lower.Contains("steam")
-            || lower.Contains("pc")
+            ContainsAny(
+                lower,
+                "gaming",
+                "game",
+                "xbox",
+                "playstation",
+                "steam",
+                "pc"
+            )
         )
         {
             lastTopic = "gaming";
         }
 
         if (
-            lower.Contains("school")
-            || lower.Contains("teacher")
-            || lower.Contains("homework")
-            || lower.Contains("gcse")
-            || lower.Contains("lesson")
+            ContainsAny(
+                lower,
+                "school",
+                "teacher",
+                "homework",
+                "gcse",
+                "lesson"
+            )
         )
         {
             lastTopic = "school";
         }
 
         if (
-            lower.Contains("uni")
-            || lower.Contains("assignment")
-            || lower.Contains("coursework")
-            || lower.Contains("dissertation")
-            || lower.Contains("lecture")
+            ContainsAny(
+                lower,
+                "uni",
+                "assignment",
+                "coursework",
+                "dissertation",
+                "lecture"
+            )
         )
         {
             lastTopic = "uni";
         }
 
         if (
-            lower.Contains("work")
-            || lower.Contains("shift")
-            || lower.Contains("manager")
-            || lower.Contains("coworker")
-            || lower.Contains("boss")
+            ContainsAny(
+                lower,
+                "work",
+                "shift",
+                "manager",
+                "coworker",
+                "boss"
+            )
         )
         {
             lastTopic = "work";
         }
 
         if (
-            lower.Contains("music")
-            || lower.Contains("song")
-            || lower.Contains("playlist")
+            ContainsAny(
+                lower,
+                "music",
+                "song",
+                "playlist"
+            )
         )
         {
             lastTopic = "music";
         }
 
         if (
-            lower.Contains("reading")
-            || lower.Contains("book")
-            || lower.Contains("novel")
+            ContainsAny(
+                lower,
+                "reading",
+                "book",
+                "novel"
+            )
         )
         {
             lastTopic = "reading";
@@ -134,14 +197,17 @@ public class ConversationAnalyser : MonoBehaviour
     )
     {
         if (
-            lower.Contains("mean")
-            || lower.Contains("bully")
-            || lower.Contains("drama")
-            || lower.Contains("ignored")
-            || lower.Contains("rude")
-            || lower.Contains("toxic")
-            || lower.Contains("fake")
-            || lower.Contains("talking behind")
+            ContainsAny(
+                lower,
+                "mean",
+                "bully",
+                "drama",
+                "ignored",
+                "rude",
+                "toxic",
+                "fake",
+                "talking behind"
+            )
         )
         {
             SetEmotion(
@@ -153,14 +219,17 @@ public class ConversationAnalyser : MonoBehaviour
         }
 
         if (
-            lower.Contains("stressed")
-            || lower.Contains("overwhelmed")
-            || lower.Contains("too much")
-            || lower.Contains("pressure")
-            || lower.Contains("panic")
-            || lower.Contains("anxious")
-            || lower.Contains("burnt out")
-            || lower.Contains("burned out")
+            ContainsAny(
+                lower,
+                "stressed",
+                "overwhelmed",
+                "too much",
+                "pressure",
+                "panic",
+                "anxious",
+                "burnt out",
+                "burned out"
+            )
         )
         {
             SetEmotion(
@@ -172,12 +241,15 @@ public class ConversationAnalyser : MonoBehaviour
         }
 
         if (
-            lower.Contains("tired")
-            || lower.Contains("exhausted")
-            || lower.Contains("drained")
-            || lower.Contains("sleepy")
-            || lower.Contains("no sleep")
-            || lower.Contains("barely slept")
+            ContainsAny(
+                lower,
+                "tired",
+                "exhausted",
+                "drained",
+                "sleepy",
+                "no sleep",
+                "barely slept"
+            )
         )
         {
             SetEmotion(
@@ -189,13 +261,16 @@ public class ConversationAnalyser : MonoBehaviour
         }
 
         if (
-            lower.Contains("sad")
-            || lower.Contains("crying")
-            || lower.Contains("upset")
-            || lower.Contains("hurt")
-            || lower.Contains("lonely")
-            || lower.Contains("heartbroken")
-            || lower.Contains("depressed")
+            ContainsAny(
+                lower,
+                "sad",
+                "crying",
+                "upset",
+                "hurt",
+                "lonely",
+                "heartbroken",
+                "depressed"
+            )
         )
         {
             SetEmotion(
@@ -207,13 +282,16 @@ public class ConversationAnalyser : MonoBehaviour
         }
 
         if (
-            lower.Contains("excited")
-            || lower.Contains("happy")
-            || lower.Contains("won")
-            || lower.Contains("passed")
-            || lower.Contains("good news")
-            || lower.Contains("promotion")
-            || lower.Contains("proud")
+            ContainsAny(
+                lower,
+                "excited",
+                "happy",
+                "won",
+                "passed",
+                "good news",
+                "promotion",
+                "proud"
+            )
         )
         {
             SetEmotion(
@@ -225,11 +303,14 @@ public class ConversationAnalyser : MonoBehaviour
         }
 
         if (
-            lower.Contains("awkward")
-            || lower.Contains("embarrassed")
-            || lower.Contains("cringe")
-            || lower.Contains("humiliating")
-            || lower.Contains("mortifying")
+            ContainsAny(
+                lower,
+                "awkward",
+                "embarrassed",
+                "cringe",
+                "humiliating",
+                "mortifying"
+            )
         )
         {
             SetEmotion(
@@ -241,11 +322,14 @@ public class ConversationAnalyser : MonoBehaviour
         }
 
         if (
-            lower.Contains("angry")
-            || lower.Contains("annoying")
-            || lower.Contains("frustrating")
-            || lower.Contains("mad")
-            || lower.Contains("irritating")
+            ContainsAny(
+                lower,
+                "angry",
+                "annoying",
+                "frustrating",
+                "mad",
+                "irritating"
+            )
         )
         {
             SetEmotion(
@@ -367,32 +451,53 @@ public class ConversationAnalyser : MonoBehaviour
     }
 
     public bool IsLikelyName(
-        string input
+        string input,
+        string currentUserName
     )
     {
-        string t =
-            input.Trim().ToLower();
-
-        if (t.Length < 3)
-        {
-            return false;
-        }
-
-        if (t.Length > 18)
-        {
-            return false;
-        }
-
         if (
-            t.Contains("!")
-            || t.Contains("?")
-            || t.Contains(".")
+            !string.IsNullOrEmpty(
+                currentUserName
+            )
         )
         {
             return false;
         }
 
-        return true;
+        string trimmed =
+            input
+            .Trim()
+            .ToLower();
+
+        if (
+            trimmed.Contains(" ")
+        )
+        {
+            return false;
+        }
+
+        if (
+            trimmed.Length < 2
+            || trimmed.Length > 14
+        )
+        {
+            return false;
+        }
+
+        foreach (
+            string word
+            in blockedNameWords
+        )
+        {
+            if (trimmed == word)
+            {
+                return false;
+            }
+        }
+
+        return char.IsLetter(
+            trimmed[0]
+        );
     }
 
     public string CleanName(
@@ -410,12 +515,16 @@ public class ConversationAnalyser : MonoBehaviour
 
         string name = raw;
 
-        if (string.IsNullOrEmpty(name))
+        if (
+            string.IsNullOrEmpty(name)
+        )
         {
             return "Kid";
         }
 
-        if (name.Length == 1)
+        if (
+            name.Length == 1
+        )
         {
             return name.ToUpper();
         }
@@ -466,9 +575,10 @@ public class ConversationAnalyser : MonoBehaviour
             || lower.Contains("song")
             || lower.Contains("music");
     }
+
     public bool IsTeasing(
-    string lower
-)
+        string lower
+    )
     {
         return
             lower.Contains("broken")
@@ -480,30 +590,22 @@ public class ConversationAnalyser : MonoBehaviour
             || lower.Contains("old")
             || lower.Contains("bully");
     }
-    string[] weirdInputs =
-{
-    "skibidi",
-    "rizz",
-    "sus",
-    "yeet",
-    "gyatt",
-    "sigma",
-    "fanum",
-    "delulu",
-    "goated",
-    "ate",
-    "mid",
-    "npc"
-};
 
     public bool ContainsWeirdInput(
         string input,
         ChatManager chat
     )
     {
-        foreach (string weird in weirdInputs)
+        foreach (
+            string weird
+            in weirdInputs
+        )
         {
-            if (input.Contains(weird))
+            if (
+                input.Contains(
+                    weird
+                )
+            )
             {
                 return true;
             }
@@ -512,14 +614,19 @@ public class ConversationAnalyser : MonoBehaviour
         string[] words =
             input.Split(' ');
 
-        foreach (string word in words)
+        foreach (
+            string word
+            in words
+        )
         {
             string clean =
                 word
                 .ToLower()
                 .Trim();
 
-            if (clean.Length >= 9)
+            if (
+                clean.Length >= 9
+            )
             {
                 bool normalWord =
                     clean.Contains("ing")
@@ -548,9 +655,16 @@ public class ConversationAnalyser : MonoBehaviour
         string input
     )
     {
-        foreach (string weird in weirdInputs)
+        foreach (
+            string weird
+            in weirdInputs
+        )
         {
-            if (input.Contains(weird))
+            if (
+                input.Contains(
+                    weird
+                )
+            )
             {
                 return weird;
             }
@@ -558,9 +672,10 @@ public class ConversationAnalyser : MonoBehaviour
 
         return "that";
     }
+
     public bool IsReciprocalResponse(
-    string lower
-)
+        string lower
+    )
     {
         lower = lower.Trim();
 
@@ -575,31 +690,41 @@ public class ConversationAnalyser : MonoBehaviour
             || lower == "how've you been"
             || lower == "how have you been";
     }
+
     public string ExtractNameFlexible(
-    string input
-)
+        string input
+    )
     {
         string lower =
             input.ToLower();
 
         string[] triggers =
         {
-        "call me",
-        "save me as",
-        "save it as",
-        "change it to",
-        "change my name to",
-        "my name is",
-        "im",
-        "i'm"
-    };
+            "call me",
+            "save me as",
+            "save it as",
+            "change it to",
+            "change my name to",
+            "my name is",
+            "im",
+            "i'm"
+        };
 
-        foreach (string trigger in triggers)
+        foreach (
+            string trigger
+            in triggers
+        )
         {
-            if (lower.Contains(trigger))
+            if (
+                lower.Contains(
+                    trigger
+                )
+            )
             {
                 int i =
-                    lower.IndexOf(trigger);
+                    lower.IndexOf(
+                        trigger
+                    );
 
                 string result =
                     input.Substring(

@@ -22,9 +22,9 @@ public class NameLoopState : ChatState
         {
             return chat.RandomChoice(
                 "OH my god",
-                "here we go again honestly",
+                "here we go again ",
                 "you cannot keep changing identities",
-                "this is becoming administrative warfare honestly",
+                "this is becoming administrative warfare ",
                 "right what's the new name then?"
             );
         }
@@ -48,7 +48,7 @@ public class NameLoopState : ChatState
             return chat.RandomChoice(
                 "alright sticking with " + chat.userName + " then. how've you been lately?",
                 "good because i was running out of patience honestly. anyway how are you?",
-                "finally we've settled it honestly. so what've you been up to lately?",
+                "finally we've settled it. so what've you been up to lately?",
                 "right perfect. so how's life been treating you?"
             );
         }
@@ -58,14 +58,16 @@ public class NameLoopState : ChatState
             );
 
         if (
-            !chat.analyser.IsLikelyName(
-                possibleName
-            )
-        
+            chat.analyser.IsLikelyName(
+              input,
+                  chat.userName
+                )
+
+
         )
         {
             return chat.RandomChoice(
-                "that is absolutely not helping honestly",
+                "that is absolutely not helping",
                 "you're making this harder than it needs to be",
                 "i just need ONE normal name",
                 "this contact list is fighting for survival",
@@ -83,7 +85,7 @@ public class NameLoopState : ChatState
         )
         {
             return chat.RandomChoice(
-                "those are not names honestly",
+                "those are not names",
                 "i refuse to believe your parents named you that",
                 "be serious for two seconds",
                 "right actual human name please"
@@ -99,10 +101,10 @@ public class NameLoopState : ChatState
         {
             return chat.RandomChoice(
                 "i'm not saving a superhero alias",
-                "you sound like a comic book character honestly",
+                "you sound like a comic book character",
                 "right and your nemesis is who exactly?",
                 "you absolutely made that up",
-                "try again with a believable name honestly"
+                "try again with a believable name"
             );
         }
 
@@ -122,16 +124,16 @@ public class NameLoopState : ChatState
                 "okay so NOW you're " + chat.userName + "?",
                 "right got it. " + chat.userName + " this time",
                 "alright changing it to " + chat.userName,
-                "you changing identities already honestly?"
+                "you changing identities already?"
             );
         }
 
         if (changeCount == 2)
         {
             return chat.RandomChoice(
-                "make your mind up honestly",
+                "make your mind up",
                 "i'm starting to think you're messing with me now",
-                "this contact list's becoming a disaster honestly",
+                "this contact list's becoming a disaster ",
                 "okay apparently we're " + chat.userName + " now"
             );
         }
@@ -149,10 +151,10 @@ public class NameLoopState : ChatState
         if (changeCount == 4)
         {
             return chat.RandomChoice(
-                "i'm fighting for my life trying to save this contact honestly",
+                "i'm fighting for my life trying to save this contact ",
                 "you're absolutely doing this on purpose now",
                 "one more change and i'm calling you random citizen",
-                "this is why old people hate technology honestly"
+                "this is why old people hate technology"
             );
         }
 
@@ -163,7 +165,7 @@ public class NameLoopState : ChatState
             );
 
             return chat.RandomChoice(
-                "right that's it i'm ACTUALLY locking it in as " + chat.userName + ". no more changes honestly. anyway how've you been?",
+                "right that's it i'm ACTUALLY locking it in as " + chat.userName + ". no more changes. anyway how've you been?",
                 "okay final answer apparently. " + chat.userName + ". i'm not changing it again. so how've things been lately?",
                 "done. locked. finished. you are now officially " + chat.userName + ". anyway what's been going on with you lately?",
                 "alright that's the final form apparently. " + chat.userName + ". how've you been anyway?"

@@ -6,14 +6,22 @@ public class MemorySystem : MonoBehaviour
     Dictionary<string, string> memories =
         new Dictionary<string, string>();
 
+    string memoryPrefix =
+        "MEMORY_";
+
     public void Remember(
         string key,
         string value
     )
     {
-        if (memories.ContainsKey(key))
+        if (
+            memories.ContainsKey(
+                key
+            )
+        )
         {
-            memories[key] = value;
+            memories[key] =
+                value;
         }
         else
         {
@@ -24,7 +32,7 @@ public class MemorySystem : MonoBehaviour
         }
 
         PlayerPrefs.SetString(
-            "MEMORY_" + key,
+            memoryPrefix + key,
             value
         );
     }
@@ -54,6 +62,26 @@ public class MemorySystem : MonoBehaviour
         return "";
     }
 
+    public void RemoveMemory(
+        string key
+    )
+    {
+        if (
+            memories.ContainsKey(
+                key
+            )
+        )
+        {
+            memories.Remove(
+                key
+            );
+        }
+
+        PlayerPrefs.DeleteKey(
+            memoryPrefix + key
+        );
+    }
+
     public void SaveMemories()
     {
         foreach (
@@ -62,7 +90,8 @@ public class MemorySystem : MonoBehaviour
         )
         {
             PlayerPrefs.SetString(
-                "MEMORY_" + pair.Key,
+                memoryPrefix
+                + pair.Key,
                 pair.Value
             );
         }
@@ -77,14 +106,26 @@ public class MemorySystem : MonoBehaviour
         string[] knownKeys =
         {
             "favoriteGame",
-            "favoriteFood"
+            "favoriteFood",
+            "favoriteCharacter",
+            "favoriteSong",
+            "favoriteMovie",
+            "favoriteShow",
+            "favoriteColour",
+            "favoriteAnimal",
+            "slang_skibidi",
+            "slang_rizz",
+            "slang_gyatt"
         };
 
-        foreach (string key in knownKeys)
+        foreach (
+            string key
+            in knownKeys
+        )
         {
             string value =
                 PlayerPrefs.GetString(
-                    "MEMORY_" + key,
+                    memoryPrefix + key,
                     ""
                 );
 
@@ -94,13 +135,33 @@ public class MemorySystem : MonoBehaviour
                 )
             )
             {
-                memories[key] = value;
+                memories[key] =
+                    value;
             }
         }
     }
 
+    public List<string> GetAllMemoryKeys()
+    {
+        return new List<string>(
+            memories.Keys
+        );
+    }
+
     public void ClearMemories()
     {
+        foreach (
+            string key
+            in new List<string>(
+                memories.Keys
+            )
+        )
+        {
+            PlayerPrefs.DeleteKey(
+                memoryPrefix + key
+            );
+        }
+
         memories.Clear();
     }
 }

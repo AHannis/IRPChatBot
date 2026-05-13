@@ -15,7 +15,14 @@ public class ResponseProcessor : MonoBehaviour
             );
 
         reply =
-            chat.typingDots.AddOccasionalTypo(
+            PreventRepeatReplies(
+                reply,
+                chat
+            );
+
+        reply =
+            chat.typingDots
+            .AddOccasionalTypo(
                 reply
             );
 
@@ -34,7 +41,10 @@ public class ResponseProcessor : MonoBehaviour
         )
         {
             reply =
-                reply.Replace("?", ".");
+                reply.Replace(
+                    "?",
+                    "."
+                );
 
             reply =
                 reply.Replace(
@@ -53,6 +63,28 @@ public class ResponseProcessor : MonoBehaviour
                     "you alright",
                     "hope you're alright"
                 );
+        }
+
+        return reply;
+    }
+
+    string PreventRepeatReplies(
+        string reply,
+        ChatManager chat
+    )
+    {
+        if (
+            chat.recentAIReplies.Contains(
+                reply
+            )
+            || StartsSimilar(
+                reply,
+                chat.recentAIReplies
+            )
+        )
+        {
+            return chat.brain
+                .GetNaturalReply();
         }
 
         return reply;
@@ -114,7 +146,9 @@ public class ResponseProcessor : MonoBehaviour
                 }
             }
 
-            if (matchingChars >= 14)
+            if (
+                matchingChars >= 14
+            )
             {
                 return true;
             }

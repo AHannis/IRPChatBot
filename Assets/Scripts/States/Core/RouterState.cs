@@ -96,7 +96,7 @@ public class RouterState : ChatState
             return chat.RandomChoice(
                
                 "you're impossible to get a straight answer from honestly",
-                "you sound like an npc side character honestly",
+                "you sound like an npc side character",
                 "i genuinely can't tell when you're joking anymore"
             );
         }
@@ -159,7 +159,7 @@ public class RouterState : ChatState
                 );
 
                 return chat.RandomChoice(
-                    "christ you're still young honestly",
+                    "christ you're still young",
                     "secondary school age then huh?",
                     "mad. feels like everyone's younger than me now"
                 )

@@ -32,7 +32,11 @@ public class ConversationPersistence : MonoBehaviour
                 ""
             );
 
-        if (string.IsNullOrEmpty(history))
+        if (
+            string.IsNullOrEmpty(
+                history
+            )
+        )
         {
             return;
         }
@@ -40,15 +44,24 @@ public class ConversationPersistence : MonoBehaviour
         string[] messages =
             history.Split("||");
 
-        foreach (string msg in messages)
+        foreach (
+            string msg
+            in messages
+        )
         {
-            if (string.IsNullOrEmpty(msg))
+            if (
+                string.IsNullOrEmpty(
+                    msg
+                )
+            )
             {
                 continue;
             }
 
             bool isUser =
-                msg.StartsWith("U:");
+                msg.StartsWith(
+                    "U:"
+                );
 
             string text =
                 msg.Substring(2);
@@ -59,6 +72,107 @@ public class ConversationPersistence : MonoBehaviour
                 chat
             );
         }
+    }
+
+    public void SavePlayerData(
+        ChatManager chat
+    )
+    {
+        PlayerPrefs.SetString(
+            "UserName",
+            chat.userName
+        );
+
+        PlayerPrefs.SetInt(
+            "RelationshipLevel",
+            chat.relationshipLevel
+        );
+
+        PlayerPrefs.SetString(
+            "LastTopic",
+            chat.lastTopic
+        );
+
+        PlayerPrefs.SetInt(
+            "CurrentMood",
+            (int)chat.currentMood
+        );
+
+        PlayerPrefs.SetInt(
+            "UserAge",
+            chat.userAge
+        );
+
+        PlayerPrefs.SetInt(
+            "KnowsUserAge",
+            chat.knowsUserAge ? 1 : 0
+        );
+
+        PlayerPrefs.SetString(
+            "LifeStage",
+            chat.lifeStage
+        );
+
+        PlayerPrefs.SetInt(
+            "CompletedIntro",
+            chat.completedIntro ? 1 : 0
+        );
+
+        PlayerPrefs.Save();
+    }
+
+    public void LoadPlayerData(
+        ChatManager chat
+    )
+    {
+        chat.userName =
+            PlayerPrefs.GetString(
+                "UserName",
+                ""
+            );
+
+        chat.relationshipLevel =
+            PlayerPrefs.GetInt(
+                "RelationshipLevel",
+                0
+            );
+
+        chat.lastTopic =
+            PlayerPrefs.GetString(
+                "LastTopic",
+                ""
+            );
+
+        chat.currentMood =
+            (ChatManager.Mood)
+            PlayerPrefs.GetInt(
+                "CurrentMood",
+                0
+            );
+
+        chat.userAge =
+            PlayerPrefs.GetInt(
+                "UserAge",
+                -1
+            );
+
+        chat.knowsUserAge =
+            PlayerPrefs.GetInt(
+                "KnowsUserAge",
+                0
+            ) == 1;
+
+        chat.lifeStage =
+            PlayerPrefs.GetString(
+                "LifeStage",
+                ""
+            );
+
+        chat.completedIntro =
+            PlayerPrefs.GetInt(
+                "CompletedIntro",
+                0
+            ) == 1;
     }
 
     public void ClearConversation()

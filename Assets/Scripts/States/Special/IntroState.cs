@@ -40,6 +40,8 @@ public class IntroState : ChatState
             )
         )
         {
+            chat.completedIntro = true;
+
             chat.ChangeState(
                 new NameLoopState(chat)
             );
@@ -136,9 +138,9 @@ public class IntroState : ChatState
             return chat.RandomChoice(
                 "right okay superhero",
                 "i'm absolutely not saving you as that",
-                "you sound like a saturday morning cartoon character honestly",
+                "you sound like a saturday morning cartoon character",
                 "that sounds fake even by your standards",
-                "try again with a HUMAN name honestly"
+                "try again with a HUMAN name"
             );
         }
 
@@ -170,7 +172,7 @@ public class IntroState : ChatState
                 "that cannot possibly be your actual name",
                 "right i'm gonna need a shorter version of that",
                 "your contact name isn't fitting on the screen at this rate",
-                "that sounds fake honestly"
+                "that sounds fake "
             );
         }
 
@@ -216,7 +218,7 @@ public class IntroState : ChatState
                 );
 
                 return chat.RandomChoice(
-                    "that's not helping honestly",
+                    "that's not helping ",
                     "right but what's your NAME",
                     "you know what i meant",
                     "i'm trying to save a contact here",
@@ -225,12 +227,12 @@ public class IntroState : ChatState
             }
         }
 
-        chat.userName =
+        chat.playerData.userName =
             cleanedName;
 
         PlayerPrefs.SetString(
             "UserName",
-            chat.userName
+            chat.playerData.userName
         );
 
         if (
@@ -243,15 +245,17 @@ public class IntroState : ChatState
 
             return chat.RandomChoice(
                 "wait actually are we sticking with "
-                + chat.userName
+                + chat.playerData.userName
                 + " or are you gonna change it in five minutes?",
                 "right before i save this permanently are you SURE you're "
-                + chat.userName
+                + chat.playerData.userName
                 + "?",
                 "okay just checking because people your age change names every six seconds",
                 "you better not suddenly decide you're called something else in ten minutes"
             );
         }
+
+        chat.completedIntro = true;
 
         chat.ChangeState(
             new PostNameState(chat)
@@ -259,14 +263,14 @@ public class IntroState : ChatState
 
         return chat.RandomChoice(
             "alright "
-            + chat.userName
+            + chat.playerData.userName
             + ". saved.",
             "perfect. i've got you as "
-            + chat.userName
+            + chat.playerData.userName
             + " now.",
             "okay done. contact crisis resolved.",
             "right i've saved you as "
-            + chat.userName
+            + chat.playerData.userName
             + "."
         )
         + "\n\n"
