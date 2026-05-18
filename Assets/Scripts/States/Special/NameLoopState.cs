@@ -4,27 +4,35 @@ public class NameLoopState : ChatState
 {
     int changeCount = 0;
 
-    public NameLoopState(ChatManager manager) : base(manager)
+    public NameLoopState(
+        ChatManager manager
+    ) : base(manager)
     {
     }
 
-    public override string HandleInput(string input)
+    public override string HandleInput(
+        string input
+    )
     {
         string lower =
             input.ToLower().Trim();
 
+        // repeated corrections create a running joke across messages
         if (
-            lower.Contains("wait no")
-            || lower.Contains("actually")
-            || lower.Contains("change it")
-            || lower.Contains("different")
+            chat.ContainsAny(
+                lower,
+                "wait no",
+                "actually",
+                "change it",
+                "different"
+            )
         )
         {
             return chat.RandomChoice(
                 "OH my god",
-                "here we go again ",
+                "here we go again",
                 "you cannot keep changing identities",
-                "this is becoming administrative warfare ",
+                "this is becoming administrative warfare",
                 "right what's the new name then?"
             );
         }
@@ -47,23 +55,24 @@ public class NameLoopState : ChatState
 
             return chat.RandomChoice(
                 "alright sticking with " + chat.userName + " then. how've you been lately?",
-                "good because i was running out of patience honestly. anyway how are you?",
+                "good because i was running out of patience. anyway how are you?",
                 "finally we've settled it. so what've you been up to lately?",
                 "right perfect. so how's life been treating you?"
             );
         }
+
         string possibleName =
             chat.analyser.CleanName(
-                chat.analyser.ExtractNameFlexible(input)
+                chat.analyser.ExtractNameFlexible(
+                    input
+                )
             );
 
         if (
             chat.analyser.IsLikelyName(
-              input,
-                  chat.userName
-                )
-
-
+                input,
+                chat.userName
+            )
         )
         {
             return chat.RandomChoice(
@@ -71,17 +80,14 @@ public class NameLoopState : ChatState
                 "you're making this harder than it needs to be",
                 "i just need ONE normal name",
                 "this contact list is fighting for survival",
-                "you're confusing me honestly"
+                "you're confusing me"
             );
         }
 
         if (
-            possibleName.ToLower()
-            == "that"
-            || possibleName.ToLower()
-            == "okay"
-            || possibleName.ToLower()
-            == "fine"
+            possibleName.ToLower() == "that"
+            || possibleName.ToLower() == "okay"
+            || possibleName.ToLower() == "fine"
         )
         {
             return chat.RandomChoice(
@@ -89,22 +95,6 @@ public class NameLoopState : ChatState
                 "i refuse to believe your parents named you that",
                 "be serious for two seconds",
                 "right actual human name please"
-            );
-        }
-
-        if (
-            possibleName.ToLower().Contains("power")
-            || possibleName.ToLower().Contains("wizard")
-            || possibleName.ToLower().Contains("hero")
-            || possibleName.ToLower().Contains("ranger")
-        )
-        {
-            return chat.RandomChoice(
-                "i'm not saving a superhero alias",
-                "you sound like a comic book character",
-                "right and your nemesis is who exactly?",
-                "you absolutely made that up",
-                "try again with a believable name"
             );
         }
 
@@ -133,49 +123,29 @@ public class NameLoopState : ChatState
             return chat.RandomChoice(
                 "make your mind up",
                 "i'm starting to think you're messing with me now",
-                "this contact list's becoming a disaster ",
+                "this contact list's becoming a disaster",
                 "okay apparently we're " + chat.userName + " now"
             );
         }
 
-        if (changeCount == 3)
-        {
-            return chat.RandomChoice(
-                "i swear you've had more names than witnesses in a crime documentary",
-                "you're impossible honestly",
-                "at this point i'm just saving you as mystery person",
-                "right. changing it AGAIN"
-            );
-        }
-
-        if (changeCount == 4)
-        {
-            return chat.RandomChoice(
-                "i'm fighting for my life trying to save this contact ",
-                "you're absolutely doing this on purpose now",
-                "one more change and i'm calling you random citizen",
-                "this is why old people hate technology"
-            );
-        }
-
-        if (changeCount >= 5)
+        if (changeCount >= 3)
         {
             chat.ChangeState(
                 new PostNameState(chat)
             );
 
             return chat.RandomChoice(
-                "right that's it i'm ACTUALLY locking it in as " + chat.userName + ". no more changes. anyway how've you been?",
-                "okay final answer apparently. " + chat.userName + ". i'm not changing it again. so how've things been lately?",
-                "done. locked. finished. you are now officially " + chat.userName + ". anyway what's been going on with you lately?",
-                "alright that's the final form apparently. " + chat.userName + ". how've you been anyway?"
+                "right that's it i'm locking it in as " + chat.userName,
+                "okay final answer apparently",
+                "done. no more identity changes",
+                "i refuse to rename this contact again"
             );
         }
 
         return chat.RandomChoice(
             "okay now i've got you as " + chat.userName,
             "right changing it to " + chat.userName,
-            "alright apparently we're using " + chat.userName + " now",
+            "apparently we're using " + chat.userName + " now",
             "you really can't settle on one name huh?"
         );
     }

@@ -4,7 +4,9 @@ public class JokeState : ChatState
 {
     int jokeExchanges = 0;
 
-    public JokeState(ChatManager manager) : base(manager)
+    public JokeState(
+        ChatManager manager
+    ) : base(manager)
     {
     }
 
@@ -13,6 +15,7 @@ public class JokeState : ChatState
         chat.currentMood =
             ChatManager.Mood.Playful;
 
+        // playful state creates fake conversational chemistry
         chat.SendAIImmediate(
             chat.RandomChoice(
                 "go on then menace",
@@ -25,7 +28,9 @@ public class JokeState : ChatState
         );
     }
 
-    public override string HandleInput(string input)
+    public override string HandleInput(
+        string input
+    )
     {
         jokeExchanges++;
 
@@ -35,9 +40,12 @@ public class JokeState : ChatState
         chat.relationshipLevel++;
 
         if (
-            lower.Contains("dementia")
-            || lower.Contains("memory")
-            || lower.Contains("forgot")
+            chat.ContainsAny(
+                lower,
+                "dementia",
+                "memory",
+                "forgot"
+            )
         )
         {
             return chat.RandomChoice(
@@ -51,10 +59,13 @@ public class JokeState : ChatState
         }
 
         if (
-            lower.Contains("broken")
-            || lower.Contains("robot")
-            || lower.Contains("npc")
-            || lower.Contains("ai")
+            chat.ContainsAny(
+                lower,
+                "broken",
+                "robot",
+                "npc",
+                "ai"
+            )
         )
         {
             return chat.RandomChoice(
@@ -68,42 +79,31 @@ public class JokeState : ChatState
         }
 
         if (
-            lower.Contains("old")
-            || lower.Contains("boomer")
-            || lower.Contains("ancient")
+            chat.ContainsAny(
+                lower,
+                "old",
+                "boomer",
+                "ancient"
+            )
         )
         {
             return chat.RandomChoice(
                 "watch it",
                 "i'm not THAT old",
                 "the disrespect from younger generations is unbelievable",
-                "wow okay i'm being aged in real time",
+                "wow okay i'm aging in real time",
                 "one more comment like that and i'm cancelling christmas"
             );
         }
 
         if (
-            lower.Contains("wow")
-            || lower.Contains("rude")
-            || lower.Contains("mean")
-            || lower.Contains("bully")
-        )
-        {
-            return chat.RandomChoice(
-                "i'm somehow the victim here",
-                "wow now I'M rude apparently",
-                "this is emotional warfare",
-                "you're the one bullying me right now",
-                "i see how it is",
-                "i'll remember this betrayal"
-            );
-        }
-
-        if (
-            lower.Contains("haha")
-            || lower.Contains("lol")
-            || lower.Contains("lmao")
-            || lower.Contains("funny")
+            chat.ContainsAny(
+                lower,
+                "haha",
+                "lol",
+                "lmao",
+                "funny"
+            )
         )
         {
             chat.ChangeState(
@@ -120,52 +120,23 @@ public class JokeState : ChatState
             );
         }
 
+        // occasional random replies stop patterns feeling too robotic
         if (
-            lower.Contains("meme")
-            || lower.Contains("tiktok")
-            || lower.Contains("brainrot")
-            || lower.Contains("skibidi")
+            Random.value < 0.15f
         )
         {
             return chat.RandomChoice(
-                "your generation worries me",
-                "i understood maybe three words there",
-                "internet humour gets stranger every year",
-                "i genuinely don't know what's happening anymore",
-                "modern humour feels like psychological warfare",
-                "half of your jokes sound AI generated"
-            );
-        }
-
-        if (
-            lower.Contains("cry")
-            || lower.Contains("crying")
-            || lower.Contains("dead")
-        )
-        {
-            return chat.RandomChoice(
-                "please survive the conversation",
-                "don't die laughing on me now",
-                "you'll recover eventually",
-                "you're being dramatic",
-                "i'm choosing to believe i'm hilarious now"
-            );
-        }
-
-        if (
-            Random.value < 0.18f
-        )
-        {
-            return chat.RandomChoice(
-                "you would've absolutely bullied me in school",
                 "you genuinely wake up and choose chaos",
                 "your messages always feel slightly threatening",
                 "you definitely laugh at your own jokes instantly",
-                "i can never tell if you're joking or plotting something"
+                "i can never tell if you're joking or plotting something",
+                "you would've absolutely bullied me in school"
             );
         }
 
-        if (jokeExchanges >= 4)
+        if (
+            jokeExchanges >= 4
+        )
         {
             chat.ChangeState(
                 new CasualState(chat)

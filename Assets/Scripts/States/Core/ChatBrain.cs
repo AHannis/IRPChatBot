@@ -5,7 +5,15 @@ public class ChatBrain : MonoBehaviour
 {
     ChatManager chat;
 
+    //prevents "fair enough" looping constantly
     int fairEnoughWeight = 0;
+
+    //stores previous random selections to avoid repetition
+    string lastLifeEvent = "";
+
+    string lastContinuation = "";
+
+
 
     void Awake()
     {
@@ -13,9 +21,12 @@ public class ChatBrain : MonoBehaviour
             GetComponent<ChatManager>();
     }
 
+    //generates fake everyday uncle stories to create illusion of personal life
     public string GetRandomLifeEvent()
     {
-        return RandomChoice(
+        List<string> options =
+            new List<string>()
+        {
             "i still haven't found where i left my glasses",
             "your aunt somehow broke the microwave again",
             "i nearly fell asleep watching a documentary earlier",
@@ -31,12 +42,32 @@ public class ChatBrain : MonoBehaviour
             "i spent ten minutes trying to remember why i walked upstairs",
             "i nearly dropped an entire cup of tea over myself earlier",
             "i accidentally waved at someone who wasn't waving at me"
+        };
+
+        options.Remove(
+            lastLifeEvent
         );
+
+        string selected =
+            options[
+                Random.Range(
+                    0,
+                    options.Count
+                )
+            ];
+
+        lastLifeEvent =
+            selected;
+
+        return selected;
     }
 
+    //callbacks create illusion of memory continuity between conversations
     public string GetRandomMemoryCallback()
     {
-        return RandomChoice(
+        List<string> options =
+            new List<string>()
+        {
             "remember when you nearly dropped that drink everywhere?",
             "i still randomly think about that weird thing you told me",
             "every story you tell somehow becomes chaotic",
@@ -47,9 +78,14 @@ public class ChatBrain : MonoBehaviour
             "you always end up in bizarre situations somehow",
             "i swear every conversation with you becomes chaotic eventually",
             "at this point i genuinely can't tell if you're unlucky or just chaos incarnate"
+        };
+
+        return RandomChoice(
+            options.ToArray()
         );
     }
 
+    //dynamic conversation continuation system
     public string GetConversationContinuation()
     {
         List<string> options =
@@ -87,6 +123,15 @@ public class ChatBrain : MonoBehaviour
             "you been sleeping properly at least?"
         );
 
+        //eliza inspired conversational redirection
+        options.Add(
+            "anyway enough about me what's been going on with you?"
+        );
+
+        options.Add(
+            "i've been rambling what about you?"
+        );
+
         if (
             chat.analyser.lastTopic
             != "visit"
@@ -120,75 +165,120 @@ public class ChatBrain : MonoBehaviour
             );
         }
 
-        if (
-            chat.lifeStage
-            == "school"
-        )
-        {
-            options.Add(
-                "school still draining your soul?"
-            );
-        }
+        options.Remove(
+            lastContinuation
+        );
 
-        if (
-            chat.lifeStage
-            == "youngAdult"
-            || chat.lifeStage
-            == "uni"
-        )
-        {
-            options.Add(
-                "uni still destroying your sleep schedule?"
-            );
-        }
+        string selected =
+            options[
+                Random.Range(
+                    0,
+                    options.Count
+                )
+            ];
 
-        if (
-            chat.lifeStage
-            == "adult"
-        )
-        {
-            options.Add(
-                "work still exhausting?"
-            );
-        }
+        lastContinuation =
+            selected;
 
-        return options[
-            Random.Range(
-                0,
-                options.Count
-            )
-        ];
+        return selected;
     }
+
+    //fallback natural sounding responses
 
     public string GetNaturalReply()
     {
         if (
-            Random.value < 0.22f
+              chat.lastTopic == "reading"
+            )
+        {
+            return RandomChoice(
+                "what kind of books?",
+                "you always disappear into books honestly",
+                "fiction or academic suffering?",
+                "anything good at least?",
+                "reading phase again then?",
+                "you found anything actually worth reading?"
+            );
+        }
+        if (
+              chat.lastTopic == "gaming"
+)
+        {
+            return RandomChoice(
+                "what've you been playing lately?",
+                "still addicted to games i assume",
+                "what game has consumed your life now?",
+                "you sleeping or just gaming constantly?"
+            );
+        }
+        if (
+              chat.lastTopic == "uni"
+)
+        {
+            return RandomChoice(
+                "coursework still destroying you?",
+                "what assignment is ruining your life currently?",
+                "uni still chaotic?",
+                "you surviving dissertation season?"
+            );
+        }
+        if (
+            Random.value < 0.18f
         )
         {
             fairEnoughWeight++;
 
-            if (fairEnoughWeight > 2)
+            if (
+                fairEnoughWeight > 2
+            )
             {
                 fairEnoughWeight = 0;
 
-                return "that tracks";
+                return RandomChoice(
+                    "that tracks what happened?",
+                    "that tracks what caused that then?",
+                    "yeah that sounds like your life honestly"
+                );
             }
 
-            return "fair enough";
+            return RandomChoice(
+                "fair enough what's been going on?",
+                "fair enough what've you been up to then?",
+                "fair enough you seem busy lately"
+            );
+        }
+
+        //small chance for hesitation style human response
+        if (
+            Random.value < 0.08f
+        )
+        {
+            return RandomChoice(
+                "actually wait no hold on",
+                "i don't even know how to explain that honestly",
+                "right okay let me think",
+                "honestly i've lost my train of thought now"
+            );
         }
 
         return RandomChoice(
-            "that's fair",
-            "can't blame you",
-            "makes sense",
-            "sounds about right",
-            "yeah i get you",
-            "that's understandable",
-            "i get that"
+            "that's fair what happened?",
+            "can't blame you honestly what's been happening lately?",
+            "makes sense honestly life been stressful lately?",
+            "sounds about right for you",
+            "yeah i get you what's been happening lately?",
+            "that's understandable honestly you managing alright though?",
+            "i get that what've you been writing lately?",
+            "you always sound busy lately honestly what's consuming your life now?",
+            "life sounds chaotic for you recently honestly",
+            "surviving still technically counts",
+            "good to hear from you again",
+            "you alright though?",
+            "you been keeping busy lately?",
+            "coursework season destroying you again?",
+            "you still surviving uni life?"
         );
     }
-
     public string GetLowEnergyReply()
     {
         return RandomChoice(
@@ -196,14 +286,14 @@ public class ChatBrain : MonoBehaviour
             "yeah maybe",
             "probably",
             "true",
-            "i get that",
+            "i get that honestly",
             "honestly yeah",
-            "that makes sense",
-            "real",
-            "maybe honestly"
+            "that makes sense honestly",
+            "maybe. what's been going on lately?"
         );
     }
 
+    //general followup system keeps conversations flowing naturally
     public string GetGeneralFollowUp()
     {
         return RandomChoice(
@@ -276,6 +366,7 @@ public class ChatBrain : MonoBehaviour
         );
     }
 
+    //eliza inspired confusion response system
     public string GetConfusedReply(
         string weirdWord
     )
@@ -284,14 +375,20 @@ public class ChatBrain : MonoBehaviour
             "i genuinely have no idea what '"
             + weirdWord
             + "' means",
+
             "is that slang or did your keyboard collapse?",
+
             "i feel about 90 years old reading that",
+
             "i'm choosing to believe that's modern language somehow",
+
             "you teenagers speak in riddles",
+
             "none of those words looked real to me"
         );
     }
 
+    //contextual followup stories for fake conversational continuity
     public string GetContextualLifeEvent()
     {
         int r =
@@ -335,6 +432,7 @@ public class ChatBrain : MonoBehaviour
             "my neighbour trapped me in a conversation outside earlier";
     }
 
+    //soft topic transition system
     public string GetSoftTopicShift()
     {
         return RandomChoice(
@@ -350,6 +448,7 @@ public class ChatBrain : MonoBehaviour
         );
     }
 
+    //natural conversational lead in system
     public string GetTopicShiftLeadIn()
     {
         return RandomChoice(
@@ -364,29 +463,22 @@ public class ChatBrain : MonoBehaviour
         );
     }
 
+    //keyword detection system for routing conversation topics
     public bool ContainsGamingTerms(
         string lower
     )
     {
         return
             lower.Contains("gaming")
-            || lower.Contains(
-                "playing"
-            )
+            || lower.Contains("playing")
             || lower.Contains("game")
             || lower.Contains("games")
             || lower.Contains("xbox")
-            || lower.Contains(
-                "playstation"
-            )
+            || lower.Contains("playstation")
             || lower.Contains("steam")
             || lower.Contains("pc")
-            || lower.Contains(
-                "minecraft"
-            )
-            || lower.Contains(
-                "fortnite"
-            );
+            || lower.Contains("minecraft")
+            || lower.Contains("fortnite");
     }
 
     public bool ContainsUniTerms(
@@ -395,27 +487,13 @@ public class ChatBrain : MonoBehaviour
     {
         return
             lower.Contains("uni")
-            || lower.Contains(
-                "university"
-            )
-            || lower.Contains(
-                "college"
-            )
-            || lower.Contains(
-                "assignment"
-            )
-            || lower.Contains(
-                "course"
-            )
-            || lower.Contains(
-                "dissertation"
-            )
-            || lower.Contains(
-                "lecture"
-            )
-            || lower.Contains(
-                "deadline"
-            );
+            || lower.Contains("university")
+            || lower.Contains("college")
+            || lower.Contains("assignment")
+            || lower.Contains("course")
+            || lower.Contains("dissertation")
+            || lower.Contains("lecture")
+            || lower.Contains("deadline");
     }
 
     public bool ContainsSchoolTerms(
@@ -424,26 +502,14 @@ public class ChatBrain : MonoBehaviour
     {
         return
             lower.Contains("school")
-            || lower.Contains(
-                "secondary"
-            )
-            || lower.Contains(
-                "teacher"
-            )
+            || lower.Contains("secondary")
+            || lower.Contains("teacher")
             || lower.Contains("gcse")
-            || lower.Contains(
-                "homework"
-            )
-            || lower.Contains(
-                "revision"
-            )
+            || lower.Contains("homework")
+            || lower.Contains("revision")
             || lower.Contains("exam")
-            || lower.Contains(
-                "lesson"
-            )
-            || lower.Contains(
-                "detention"
-            );
+            || lower.Contains("lesson")
+            || lower.Contains("detention");
     }
 
     public bool ContainsHobbyTerms(
@@ -451,31 +517,18 @@ public class ChatBrain : MonoBehaviour
     )
     {
         return
-            lower.Contains(
-                "reading"
-            )
+            lower.Contains("reading")
             || lower.Contains("books")
-            || lower.Contains(
-                "drawing"
-            )
+            || lower.Contains("drawing")
             || lower.Contains("art")
-            || lower.Contains(
-                "music"
-            )
-            || lower.Contains(
-                "writing"
-            )
-            || lower.Contains(
-                "painting"
-            )
-            || lower.Contains(
-                "crochet"
-            )
-            || lower.Contains(
-                "craft"
-            );
+            || lower.Contains("music")
+            || lower.Contains("writing")
+            || lower.Contains("painting")
+            || lower.Contains("crochet")
+            || lower.Contains("craft");
     }
 
+    //multi stage story continuation system
     public string ContinueActiveStory()
     {
         if (
@@ -528,92 +581,10 @@ public class ChatBrain : MonoBehaviour
             }
         }
 
-        if (
-            chat.activeStory
-            == "coffee"
-        )
-        {
-            if (
-                chat.activeStoryStep
-                == 0
-            )
-            {
-                chat.activeStoryStep++;
-
-                return
-                    "i accidentally made coffee strong enough to restart my nervous system";
-            }
-
-            if (
-                chat.activeStoryStep
-                == 1
-            )
-            {
-                chat.activeStoryStep++;
-
-                return
-                    "my hands were vibrating for two hours "
-                    + chat.Emoji(
-                        "thumbsup"
-                    );
-            }
-
-            if (
-                chat.activeStoryStep
-                == 2
-            )
-            {
-                chat.storyActive =
-                    false;
-
-                return
-                    "i genuinely think i saw through time briefly";
-            }
-        }
-
-        if (
-            chat.activeStory
-            == "bus"
-        )
-        {
-            if (
-                chat.activeStoryStep
-                == 0
-            )
-            {
-                chat.activeStoryStep++;
-
-                return
-                    "some bloke on the bus started arguing with the ticket machine like it insulted his family";
-            }
-
-            if (
-                chat.activeStoryStep
-                == 1
-            )
-            {
-                chat.activeStoryStep++;
-
-                return
-                    "the driver just stared into the void like he'd mentally left the planet";
-            }
-
-            if (
-                chat.activeStoryStep
-                == 2
-            )
-            {
-                chat.storyActive =
-                    false;
-
-                return
-                    "public transport genuinely changes people";
-            }
-        }
-
         return "";
     }
 
+    //starts random conversational story event
     public void StartRandomStory()
     {
         List<string>
@@ -636,8 +607,7 @@ public class ChatBrain : MonoBehaviour
             possibleStories[
                 Random.Range(
                     0,
-                    possibleStories
-                    .Count
+                    possibleStories.Count
                 )
             ];
 
@@ -648,13 +618,7 @@ public class ChatBrain : MonoBehaviour
             0;
     }
 
-    public string GetRandomStoryStarter()
-    {
-        StartRandomStory();
-
-        return ContinueActiveStory();
-    }
-
+    //random selection helper used across entire ai system
     public string RandomChoice(
         params string[] options
     )
@@ -667,8 +631,17 @@ public class ChatBrain : MonoBehaviour
         ];
     }
 
+    //memory callback chance increases with relationship level
     public bool ShouldCallbackMemory()
     {
+        if (
+            chat.relationshipLevel > 8
+        )
+        {
+            chat.callbackChance =
+                0.35f;
+        }
+
         return
             Random.value
             < chat.callbackChance;
@@ -687,14 +660,20 @@ public class ChatBrain : MonoBehaviour
             Random.value < 0.25f;
     }
 
+    //builds simple smalltalk chains automatically
     public string BuildSmallTalkResponse()
     {
-        return
-            GetNaturalReply()
-            + ". "
-            + GetGeneralFollowUp();
+        return RandomChoice(
+            "what else have you been up to lately?",
+            "you always seem busy lately",
+            "what's been consuming your life recently then?",
+            "anything interesting been happening lately?",
+            "you surviving alright lately at least?",
+            "what've you been focused on recently?"
+        );
     }
 
+    //emotion based conversational responses
     public string BuildMoodResponse(
         ChatManager.Mood mood
     )
@@ -735,10 +714,14 @@ public class ChatBrain : MonoBehaviour
         }
 
         return RandomChoice(
-     "fair enough",
-     "that tracks",
-     "makes sense",
-     "can't blame you"
- );
+            "fair enough",
+            "that tracks",
+            "makes sense",
+            "can't blame you"
+        );
     }
+
+    //looked into fuzzy conversational systems using csharpcorner
+    //reference:
+    //https://www.c-sharpcorner.com/article/fuzzy-search-in-c-sharp
 }

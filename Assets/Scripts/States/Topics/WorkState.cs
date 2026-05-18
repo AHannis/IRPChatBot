@@ -15,6 +15,7 @@ public class WorkState : ChatState
         chat.currentMood =
             ChatManager.Mood.Concerned;
 
+        // higher relationship = more personal openings
         if (chat.relationshipLevel >= 20)
         {
             chat.SendAIImmediate(
@@ -49,6 +50,29 @@ public class WorkState : ChatState
 
         string lower =
             input.ToLower();
+
+        if (
+            chat.relationshipLevel >= 15
+            && chat.ContainsAny(
+                lower,
+                "burnout",
+                "can't cope",
+                "too much"
+            )
+        )
+        {
+            chat.ChangeState(
+                new ComfortState(chat)
+            );
+
+            return chat.RandomChoice(
+                "yeah you've been under pressure for a while",
+                "sounds like everything's piling up on you",
+                "work burnout genuinely messes people up mentally",
+                "you need proper recovery time",
+                "you can't keep running on stress forever"
+            );
+        }
 
         if (
             chat.ContainsAny(
@@ -88,8 +112,8 @@ public class WorkState : ChatState
             chat.relationshipLevel++;
 
             return chat.RandomChoice(
-                "good honestly",
-                "about time honestly where you going?",
+                "good",
+                "about time where you going?",
                 "your brain was begging for a break",
                 "nice when are you off?",
                 "good. you seriously needed one",
@@ -118,7 +142,7 @@ public class WorkState : ChatState
                 "yeah work has a way of sucking the soul out of people",
                 "you deserve paying double",
                 "sounds miserable",
-                "i would've snapped by now honestly",
+                "i would've snapped by now",
                 "people really test your patience at work huh?",
                 "work stress builds up ridiculously fast"
             )
@@ -151,7 +175,7 @@ public class WorkState : ChatState
             return chat.RandomChoice(
                 "look at you becoming successful",
                 "that's actually really good to hear",
-                "proud of you honestly",
+                "proud of you",
                 "well someone's thriving",
                 "finally some good news from work",
                 "see? all the suffering paid off"
@@ -179,7 +203,7 @@ public class WorkState : ChatState
                 "freedom at last",
                 "bet your stress levels dropped instantly",
                 "workplaces really push people to the limit",
-                "honestly i'd celebrate"
+                "i'd celebrate"
             )
             + " "
             + chat.Emoji("laugh");
@@ -242,12 +266,13 @@ public class WorkState : ChatState
             return chat.RandomChoice(
                 "retail and food jobs genuinely test human patience",
                 "people who survive customer service deserve medals",
-                "shift work destroys your sense of time honestly",
+                "shift work destroys your sense of time",
                 "shops somehow become chaotic instantly",
                 "kitchen stress looks terrifying"
             );
         }
 
+        // random uncle observations
         if (
             Random.value < 0.18f
         )
@@ -273,7 +298,7 @@ public class WorkState : ChatState
                 "people are exhausting",
                 "you seriously need more time to relax",
                 "life gets ridiculously busy",
-                "you deserve a proper break honestly"
+                "you deserve a proper break"
             )
             + ". "
             + chat.RandomChoice(
@@ -292,7 +317,7 @@ public class WorkState : ChatState
             "work never ends does it",
             "adult life is ridiculous",
             "you deserve a break",
-            "honestly jobs seem emotionally draining"
+            "jobs seem emotionally draining"
         );
     }
 }

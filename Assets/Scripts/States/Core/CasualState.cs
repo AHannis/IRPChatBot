@@ -9,13 +9,16 @@ public class CasualState : ChatState
     {
     }
 
-    public override string HandleInput(string input)
+    public override string HandleInput(
+        string input
+    )
     {
         casualExchanges++;
 
         string lower =
             input.ToLower();
 
+        //routes major topics into specialised states
         if (
             chat.ContainsAny(
                 lower,
@@ -52,6 +55,7 @@ public class CasualState : ChatState
                 .HandleInput(input);
         }
 
+        //natural conversational redirects
         if (
             lower == "anyway"
             || lower == "anywaay"
@@ -68,38 +72,62 @@ public class CasualState : ChatState
             );
         }
 
+        //tracks forgotten question callbacks for realism
         if (
-            lower.Contains("what was the question")
-            || lower.Contains("what question")
-            || lower.Contains("which question")
+            lower.Contains(
+                "what was the question"
+            )
+            || lower.Contains(
+                "what question"
+            )
+            || lower.Contains(
+                "which question"
+            )
         )
         {
-            if (chat.lastQuestionTopic == "age")
+            if (
+                chat.lastQuestionTopic
+                == "age"
+            )
             {
                 return chat.RandomChoice(
-                    "your age " + chat.Emoji("laugh"),
+                    "your age "
+                    + chat.Emoji(
+                        "laugh"
+                    ),
+
                     "i literally asked how old you are",
+
                     "how old are you then?",
+
                     "the age question detective"
                 );
             }
 
-            if (chat.lastQuestionTopic == "life")
+            if (
+                chat.lastQuestionTopic
+                == "life"
+            )
             {
                 return chat.RandomChoice(
                     "what you've been up to lately",
+
                     "how life's been treating you",
+
                     "what's been going on with you"
                 );
             }
 
             return chat.RandomChoice(
                 "honestly i've forgotten too",
+
                 "good question actually",
+
                 "i got distracted halfway through"
             );
         }
 
+        //short acknowledgement handling
         if (
             lower == "yeah"
             || lower == "yep"
@@ -110,35 +138,63 @@ public class CasualState : ChatState
             || lower == "lmao"
         )
         {
+            //eliza style conversational pressure
+            //pushes user to continue if question was ignored
             if (
-                chat.lastBotMessage.Contains("?")
-                || chat.lastBotMessage.Contains("what've")
-                || chat.lastBotMessage.Contains("how've")
-                || chat.lastBotMessage.Contains("never answered")
+                chat.lastBotMessage
+                .Contains("?")
+                || chat.lastBotMessage
+                .Contains(
+                    "what've"
+                )
+                || chat.lastBotMessage
+                .Contains(
+                    "how've"
+                )
+                || chat.lastBotMessage
+                .Contains(
+                    "never answered"
+                )
             )
             {
                 return chat.RandomChoice(
                     "right so answer me then",
+
                     "go on then i'm listening",
+
                     "well?",
+
                     "i'm waiting",
+
                     "you still dodging the question then?"
                 );
             }
 
             return chat.RandomChoice(
-              "exactly " + chat.Emoji("laugh"),
-              "right? anyway what've you been up to lately?",
-              "you get it honestly",
-              "see what i mean though",
-             "yeah that's what i mean",
-                 "ANYWAY what's new with you?",
-             "right so what's been going on lately?",
-             "you still surviving at least?",
-                     "what chaos have you caused lately?"
+                "exactly "
+                + chat.Emoji(
+                    "laugh"
+                ),
+
+                "right? anyway what've you been up to lately?",
+
+                "you get it honestly",
+
+                "see what i mean though",
+
+                "yeah that's what i mean",
+
+                "ANYWAY what's new with you?",
+
+                "right so what's been going on lately?",
+
+                "you still surviving at least?",
+
+                "what chaos have you caused lately?"
             );
         }
 
+        //basic continuation responses
         if (
             lower == "okay"
             || lower == "ok"
@@ -148,13 +204,18 @@ public class CasualState : ChatState
         {
             return chat.RandomChoice(
                 "right continue then",
+
                 "go on i'm listening",
+
                 "fair enough honestly",
+
                 "right where were we?",
+
                 "okay then"
             );
         }
 
+        //soft topic shifting system
         if (
             chat.awaitingTopicShift
         )
@@ -164,46 +225,84 @@ public class CasualState : ChatState
 
             return chat.RandomChoice(
                 "anyway what's been going on with you lately?",
+
                 "right changing subject honestly",
+
                 "ANYWAY",
+
                 "so what else is new?",
+
                 "moving on swiftly"
             );
         }
 
+        //eliza inspired reflective callbacks
+        //reuses user phrases to create illusion of understanding
         string topic =
-            chat.ExtractTopic(input);
+            chat.ExtractTopic(
+                input
+            );
+
         if (
-            !string.IsNullOrEmpty(topic)
-            && input.Split(' ').Length >= 6
-            && topic.Split(' ').Length >= 2
+            !string.IsNullOrEmpty(
+                topic
+            )
+            && input.Split(' ')
+            .Length >= 6
+            && topic.Split(' ')
+            .Length >= 2
             && !lower.Contains("?")
-            && !chat.IsShortReply(lower)
-            && !chat.IsLikelyActivityResponse(input)
-            && !topic.StartsWith("not ")
-            && !topic.StartsWith("just ")
-            && !topic.StartsWith("yeah ")
-            && !topic.StartsWith("okay ")
-            && UnityEngine.Random.value < 0.20f
+            && !chat.IsShortReply(
+                lower
+            )
+            && !chat
+            .IsLikelyActivityResponse(
+                input
+            )
+            && !topic.StartsWith(
+                "not "
+            )
+            && !topic.StartsWith(
+                "just "
+            )
+            && !topic.StartsWith(
+                "yeah "
+            )
+            && !topic.StartsWith(
+                "okay "
+            )
+            && UnityEngine.Random
+            .value < 0.12f
         )
         {
             chat.awaitingTopicShift =
                 true;
 
             return chat.RandomChoice(
-                topic + " wasn't on my bingo card today",
-                "why does " + topic + " sound believable coming from you",
-                "i have several questions about " + topic,
-                topic + " sounds oddly specific",
+                topic
+                + " wasn't on my bingo card today",
+
+                "why does "
+                + topic
+                + " sound believable coming from you",
+
+                "i have several questions about "
+                + topic,
+
+                topic
+                + " sounds oddly specific",
+
                 "that's a strange sentence out of context"
             );
         }
 
+        //natural age discovery flow
         if (
             !chat.knowsUserAge
             && !chat.askedAgeRecently
             && casualExchanges >= 4
-            && UnityEngine.Random.value < 0.10f
+            && UnityEngine.Random
+            .value < 0.10f
         )
         {
             chat.askedAgeRecently =
@@ -218,42 +317,40 @@ public class CasualState : ChatState
 
             return chat.RandomChoice(
                 "wait how old are you actually now?",
+
                 "random question how old are you these days?"
             );
         }
 
+        //reciprocal reply detection
+        //makes bot answer when user asks about it back
         if (
-            UnityEngine.Random.value
-            < 0.04f
-            && !chat.storyActive
+            chat.IsReciprocalResponse(
+                lower
+            )
         )
-        {
-            chat.ChangeState(
-                new UncleStoryState(chat)
-            );
-
-            return
-                "you know what happened earlier?";
-        }
-
-        if (
-    chat.IsReciprocalResponse(
-        lower
-    )
-)
         {
             string reply =
                 chat.RandomChoice(
                     "i'm alright honestly",
-                    "surviving somehow " + chat.Emoji("laugh"),
+
+                    "surviving somehow "
+                    + chat.Emoji(
+                        "laugh"
+                    ),
+
                     "bit tired but alive",
-                    "doing alright",
-                    "mentally somewhere between relaxed and crashing"
+
+                    "can't complain too much",
+
+                    "alive at least",
+
+                    "getting through it honestly"
                 );
 
             if (
-                UnityEngine.Random.value
-                < 0.30f
+                UnityEngine.Random
+                .value < 0.30f
             )
             {
                 reply +=
@@ -264,24 +361,29 @@ public class CasualState : ChatState
             return reply;
         }
 
-        string reflective =
-            chat.GenerateReflectiveResponse(
-                input
-            );
-
+        //long term chaos personality system
         if (
-            !string.IsNullOrEmpty(reflective)
-            && !chat.IsShortReply(lower)
-            && !chat.IsReciprocalResponse(lower)
-            && UnityEngine.Random.value < 0.18f
+            chat.chaosLevel > 4f
+            && UnityEngine.Random
+            .value < 0.10f
         )
         {
-            return reflective;
+            return chat.RandomChoice(
+                "your life genuinely concerns me sometimes",
+
+                "how does chaos keep finding you",
+
+                "every conversation with you escalates somehow",
+
+                "you attract disasters professionally at this point"
+            );
         }
 
+        //conversation continuation system
         if (
-    casualExchanges >= 5
-)
+            casualExchanges >= 5
+            && !lower.Contains("?")
+        )
         {
             casualExchanges = 0;
 
@@ -289,39 +391,58 @@ public class CasualState : ChatState
                 chat.GetConversationContinuation();
         }
 
+        //uncle story interruption system
         if (
-            UnityEngine.Random.value < 0.12f
+            UnityEngine.Random
+            .value < 0.12f
             && !chat.storyActive
         )
         {
             chat.ChangeState(
-                new UncleStoryState(chat)
+                new UncleStoryState(
+                    chat
+                )
             );
 
             return chat.RandomChoice(
                 "you know what happened earlier?",
+
                 "right i've gotta tell you this",
+
                 "okay funniest thing happened earlier",
+
                 "actually listen to this",
+
                 "speaking of chaos"
             );
         }
 
+        //general casual fallback questions
         if (
-            UnityEngine.Random.value < 0.45f
+            UnityEngine.Random
+            .value < 0.45f
+            && !chat.lastBotMessage
+            .Contains("lately")
         )
         {
             return chat.RandomChoice(
                 "anyway what've you been up to lately?",
+
                 "so what's been going on with you then?",
+
                 "what's new with you lately?",
+
                 "anything interesting happened lately?",
+
                 "you been doing anything fun recently?",
+
                 "what's the latest chaos in your life?",
+
                 "life been alright lately?"
             );
         }
 
+        //final natural response fallback
         string finalReply =
             chat.GetNaturalReply();
 

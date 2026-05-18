@@ -4,13 +4,18 @@ public class ReconnectState : ChatState
 {
     bool askedAge = false;
 
-    public ReconnectState(ChatManager manager) : base(manager)
+    public ReconnectState(
+        ChatManager manager
+    ) : base(manager)
     {
     }
 
     public override void Enter()
     {
-        if (chat.relationshipLevel >= 30)
+        // relationship level changes how familiar the uncle sounds
+        if (
+            chat.relationshipLevel >= 30
+        )
         {
             chat.SendAIImmediate(
                 chat.RandomChoice(
@@ -26,7 +31,9 @@ public class ReconnectState : ChatState
             return;
         }
 
-        if (chat.relationshipLevel >= 15)
+        if (
+            chat.relationshipLevel >= 15
+        )
         {
             chat.SendAIImmediate(
                 chat.RandomChoice(
@@ -61,14 +68,16 @@ public class ReconnectState : ChatState
         string lower =
             input.ToLower();
 
+        // reconnect conversations naturally shift back into learning details
         if (
             !chat.knowsUserAge
             && !askedAge
-            && (
-                lower.Contains("good")
-                || lower.Contains("fine")
-                || lower.Contains("okay")
-                || lower.Contains("alright")
+            && chat.ContainsAny(
+                lower,
+                "good",
+                "fine",
+                "okay",
+                "alright"
             )
         )
         {
@@ -84,7 +93,7 @@ public class ReconnectState : ChatState
                 "good to hear. you must be getting older now how old are you?",
                 "nice. feels like everyone's growing up ridiculously fast now",
                 "good. wait how old are you now actually?",
-                "mad how fast time moves honestly. how old are you these days?"
+                "mad how fast time moves. how old are you these days?"
             );
         }
 
@@ -93,10 +102,13 @@ public class ReconnectState : ChatState
         );
 
         if (
-            lower.Contains("good")
-            || lower.Contains("fine")
-            || lower.Contains("okay")
-            || lower.Contains("alright")
+            chat.ContainsAny(
+                lower,
+                "good",
+                "fine",
+                "okay",
+                "alright"
+            )
         )
         {
             chat.relationshipLevel++;
@@ -107,15 +119,18 @@ public class ReconnectState : ChatState
                 "good. life been treating you alright?",
                 "nice. you keeping busy lately?",
                 "good to hear",
-                "love that for you honestly"
+                "love that for you"
             );
         }
 
         if (
-            lower.Contains("tired")
-            || lower.Contains("meh")
-            || lower.Contains("bored")
-            || lower.Contains("drained")
+            chat.ContainsAny(
+                lower,
+                "tired",
+                "meh",
+                "bored",
+                "drained"
+            )
         )
         {
             return chat.RandomChoice(
@@ -124,7 +139,7 @@ public class ReconnectState : ChatState
                 "you've sounded drained lately",
                 "your energy levels sound tragic",
                 "you seriously need proper rest",
-                "you sound mentally cooked honestly"
+                "you sound mentally cooked"
             )
             + ". "
             + chat.RandomChoice(
@@ -137,10 +152,13 @@ public class ReconnectState : ChatState
         }
 
         if (
-            lower.Contains("stress")
-            || lower.Contains("overwhelmed")
-            || lower.Contains("bad")
-            || lower.Contains("awful")
+            chat.ContainsAny(
+                lower,
+                "stress",
+                "overwhelmed",
+                "bad",
+                "awful"
+            )
         )
         {
             chat.ChangeState(
@@ -153,14 +171,17 @@ public class ReconnectState : ChatState
                 "you've been carrying a lot mentally huh?",
                 "life hitting hard lately?",
                 "talk to me properly for a second",
-                "you've seemed overwhelmed lately honestly"
+                "you've seemed overwhelmed lately"
             );
         }
 
         if (
-            lower.Contains("gaming")
-            || lower.Contains("game")
-            || lower.Contains("playing")
+            chat.ContainsAny(
+                lower,
+                "gaming",
+                "game",
+                "playing"
+            )
         )
         {
             chat.ChangeState(
@@ -172,10 +193,13 @@ public class ReconnectState : ChatState
         }
 
         if (
-            lower.Contains("busy")
-            || lower.Contains("work")
-            || lower.Contains("uni")
-            || lower.Contains("school")
+            chat.ContainsAny(
+                lower,
+                "busy",
+                "work",
+                "uni",
+                "school"
+            )
         )
         {
             return chat.RandomChoice(
@@ -197,8 +221,11 @@ public class ReconnectState : ChatState
         }
 
         if (
-            lower.Contains("missed you")
-            || lower.Contains("miss you")
+            chat.ContainsAny(
+                lower,
+                "missed you",
+                "miss you"
+            )
         )
         {
             return chat.RandomChoice(
@@ -206,22 +233,25 @@ public class ReconnectState : ChatState
                 "don't make this weird now",
                 "yeah yeah i missed you too probably",
                 "that's suspiciously wholesome from you",
-                "you're lucky i tolerate you honestly"
+                "you're lucky i tolerate you"
             )
             + " "
             + chat.Emoji("smile");
         }
 
         if (
-            lower.Contains("nothing")
-            || lower.Contains("not much")
+            chat.ContainsAny(
+                lower,
+                "nothing",
+                "not much"
+            )
         )
         {
             return chat.RandomChoice(
                 "there's no way that's true",
                 "you definitely sound like somebody avoiding details",
                 "you always say that and then reveal something ridiculous later",
-                "fair enough honestly",
+                "fair enough",
                 "living mysteriously i see"
             );
         }

@@ -4,11 +4,12 @@ using UnityEngine;
 
 public class TypingRef : MonoBehaviour
 {
+    //storing recently reflected topics so reflective callback isnt used too often
     List<string> recentTopics =
         new List<string>();
-
+    // controlling how often follow up questions can be asked throughout topics
     float followUpCooldown = 0f;
-
+    // words to be ignored so bot doesn't misread conversation
     string[] ignoredWords =
     {
         "im",
@@ -125,7 +126,7 @@ public class TypingRef : MonoBehaviour
         "sorta",
         "kinda"
     };
-
+    // contains known bad phrase combos that previously caused unnatural responses
     string[] blockedTopics =
     {
         "pretty much",
@@ -150,9 +151,17 @@ public class TypingRef : MonoBehaviour
         string input,
         ChatManager chat
     )
-    {
+    { //converts to lowercase for understanding user
         string lower =
             input.ToLower();
+
+        if (
+            chat.currentState is ComfortState
+            || chat.currentState is ConcernState
+        )
+        {
+            return "";
+        }
 
         if (
             lower.Contains(
@@ -204,7 +213,7 @@ public class TypingRef : MonoBehaviour
         {
             return "";
         }
-
+        
         string topic =
             ExtractTopic(
                 input
@@ -249,7 +258,7 @@ public class TypingRef : MonoBehaviour
             );
 
         if (
-            Random.value < 0.18f
+            Random.value < 0.08f
             && Time.time > followUpCooldown
         )
         {
@@ -263,7 +272,7 @@ public class TypingRef : MonoBehaviour
 
         return response;
     }
-
+    //attempting to understand the user
     public string ExtractTopic(
         string input
     )
@@ -279,7 +288,7 @@ public class TypingRef : MonoBehaviour
             );
 
         if (
-            lower.Split(' ').Length <= 3
+            lower.Split(' ').Length <= 5
         )
         {
             return "";
@@ -322,9 +331,16 @@ public class TypingRef : MonoBehaviour
         }
 
         string combined =
-            words[0]
-            + " "
-            + words[1];
+            string.Join(
+                " ",
+                words.GetRange(
+                    0,
+                    Mathf.Min(
+                        3,
+                        words.Count
+                    )
+                )
+            );
 
         foreach (
             string blocked
@@ -361,28 +377,46 @@ public class TypingRef : MonoBehaviour
 
         return combined;
     }
-
+    //contains library of reflective responses used to mirror and create eliza style effect
     public string ReflectTopic(
         string topic,
         ChatManager chat
     )
     {
         return chat.RandomChoice(
-            topic + "? that's oddly specific",
-            "why " + topic + "?",
-            topic + " actually sounds like something you'd do",
-            "you've been into " + topic + " lately?",
-            topic + " again?",
-            topic + " sounds concerning",
-            "i feel like there's a story behind the " + topic,
-            topic + "? elaborate immediately",
-            "not gonna lie the " + topic + " thing caught me off guard",
-            "why are we talking about " + topic,
-            topic + " is oddly specific",
-            "you say things like " + topic + " so casually"
+            topic + " wasn't what i expected you to say honestly",
+
+            "you mention " + topic + " so casually",
+
+            "there's definitely a story behind the "
+            + topic
+            + " thing",
+
+            topic + " feels oddly specific",
+
+            "why do i feel like "
+            + topic
+            + " has context i'm missing",
+
+            "somehow "
+            + topic
+            + " sounds believable coming from you",
+
+            topic + " again huh",
+
+            "i wasn't expecting the conversation to become about "
+            + topic,
+
+            "honestly the "
+            + topic
+            + " thing caught me off guard",
+
+            "you always say things like "
+            + topic
+            + " so casually"
         );
     }
-
+    //clears stored topic when resetting or restarting convo
     public void ClearRecentTopics()
     {
         recentTopics.Clear();

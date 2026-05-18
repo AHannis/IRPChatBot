@@ -65,7 +65,9 @@ public class GamingState : ChatState
         string lower =
             input.ToLower();
 
-        string gameGuess = input;
+        // attempts to isolate the actual game title
+        string gameGuess =
+            lower;
 
         gameGuess = gameGuess
             .Replace("i've been", "")
@@ -75,6 +77,8 @@ public class GamingState : ChatState
             .Replace("started", "")
             .Replace("gaming", "")
             .Replace("just", "")
+            .Replace("the game", "")
+            .Replace("called", "")
             .Trim();
 
         if (
@@ -194,7 +198,7 @@ public class GamingState : ChatState
                 "you always find strange games",
                 "game companies really charge money for anything now",
                 "nothing worse than buying a disappointing game",
-                "that's painful honestly"
+                "that's painful"
             )
             + ". "
             + chat.RandomChoice(
@@ -298,6 +302,25 @@ public class GamingState : ChatState
             );
         }
 
+        // obsession style responses
+        if (
+            chat.ContainsAny(
+                lower,
+                "addicted",
+                "obsessed",
+                "nonstop"
+            )
+        )
+        {
+            return chat.RandomChoice(
+                "yeah that's how games trap people",
+                "there goes your free time",
+                "you've entered the obsession phase",
+                "your sleep schedule's finished",
+                "games really do consume people's personalities sometimes"
+            );
+        }
+
         if (
             chat.HasMemory("favoriteGame")
             && Random.value < 0.12f
@@ -360,7 +383,7 @@ public class GamingState : ChatState
         )
         {
             return chat.RandomChoice(
-                "sounds about right honestly",
+                "sounds about right",
                 "you always end up addicted to something",
                 "i can already tell you've been playing nonstop",
                 "your free time's vanished again then",

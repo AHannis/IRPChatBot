@@ -1,17 +1,29 @@
 using UnityEngine;
 
+// base class all conversation states inherit from
 public abstract class ChatState
 {
     protected ChatManager chat;
 
-    public ChatState(ChatManager manager)
+    public ChatState(
+        ChatManager manager
+    )
     {
         chat = manager;
     }
 
-    public virtual void Enter() { }
+    // optional enter hook
+    public virtual void Enter()
+    {
+    }
 
-    public abstract string HandleInput(string input);
+    // every state must handle user input
+    public abstract string HandleInput(
+        string input
+    );
 
-    public virtual void Exit() { }
+    // optional exit hook
+    public virtual void Exit()
+    {
+    }
 }

@@ -19,15 +19,16 @@ public class FamilyState : ChatState
 
         chat.exchangesSinceFamilyQuestion = 0;
 
+        // more personal intros at higher relationship
         if (chat.relationshipLevel >= 20)
         {
             chat.SendAIImmediate(
                 chat.RandomChoice(
-                    "your family still chaotic honestly?",
+                    "your family still chaotic?",
                     "heard from everyone lately or are they all causing problems again?",
                     "how's the family madness going then?",
                     "your aunt still creating absolute nonsense?",
-                    "i swear every family gathering turns into psychological warfare honestly"
+                    "i swear every family gathering turns into psychological warfare"
                 )
             );
 
@@ -40,7 +41,7 @@ public class FamilyState : ChatState
                 "everyone still alive and causing chaos?",
                 "family drama or peaceful for once?",
                 "how's everyone doing then?",
-                "your family still surviving honestly?"
+                "your family still surviving?"
             )
         );
     }
@@ -49,7 +50,8 @@ public class FamilyState : ChatState
     {
         familyExchanges++;
 
-        string lower = input.ToLower();
+        string lower =
+            input.ToLower();
 
         if (
             lower.Contains("good")
@@ -61,10 +63,10 @@ public class FamilyState : ChatState
             chat.relationshipLevel++;
 
             return chat.RandomChoice(
-                "good. nice when everyone's behaving for once honestly",
-                "that's rare honestly",
+                "good. nice when everyone's behaving for once",
+                "that's rare",
                 "love that for you",
-                "miracles really do happen honestly",
+                "miracles really do happen",
                 "family peace never lasts long though"
             );
         }
@@ -77,17 +79,17 @@ public class FamilyState : ChatState
         )
         {
             return chat.RandomChoice(
-                "families are exhausting honestly",
+                "families are exhausting",
                 "there's ALWAYS something happening somehow",
-                "yeah that sounds about right honestly",
+                "yeah that sounds about right",
                 "family drama spreads unbelievably fast",
-                "every family has at least one chaos generator honestly"
+                "every family has at least one chaos generator"
             )
             + ". "
             + chat.RandomChoice(
                 "you involved in it or hiding from it?",
                 "who started it this time?",
-                "sounds emotionally exhausting honestly",
+                "sounds emotionally exhausting",
                 "i swear families invent problems sometimes",
                 "you surviving it alright?"
             );
@@ -105,11 +107,11 @@ public class FamilyState : ChatState
             chat.relationshipLevel++;
 
             return chat.RandomChoice(
-                "they still putting up with you then honestly?",
-                "bless them honestly",
-                "family members deserve medals honestly",
-                "sounds like absolute chaos honestly",
-                "give them my regards honestly"
+                "they still putting up with you then?",
+                "bless them",
+                "family members deserve medals",
+                "sounds like absolute chaos",
+                "give them my regards"
             );
         }
 
@@ -120,10 +122,10 @@ public class FamilyState : ChatState
         )
         {
             return chat.RandomChoice(
-                "good honestly. don't disappear forever",
-                "see that's healthy honestly",
+                "good. don't disappear forever",
+                "see that's healthy",
                 "families matter even when they're chaotic",
-                "someone's finally being social honestly",
+                "someone's finally being social",
                 "good. people need checking in on sometimes"
             );
         }
@@ -135,12 +137,14 @@ public class FamilyState : ChatState
             || lower.Contains("funeral")
         )
         {
-            chat.ChangeState(new ComfortState(chat));
+            chat.ChangeState(
+                new ComfortState(chat)
+            );
 
             return chat.RandomChoice(
-                "yeah that's never easy honestly",
+                "yeah that's never easy",
                 "some people leave a massive gap behind them",
-                "grief hits people in strange ways honestly",
+                "grief hits people in strange ways",
                 "that kind of thing stays with you",
                 "take care of yourself alright?"
             );
@@ -153,11 +157,11 @@ public class FamilyState : ChatState
         )
         {
             return chat.RandomChoice(
-                "families know exactly how to test your patience honestly",
+                "families know exactly how to test your patience",
                 "people somehow get more annoying when they're related to you",
-                "living with people is emotionally dangerous honestly",
+                "living with people is emotionally dangerous",
                 "family arguments always start over the dumbest things",
-                "everyone eventually snaps honestly"
+                "everyone eventually snaps"
             );
         }
 
@@ -170,23 +174,40 @@ public class FamilyState : ChatState
             chat.relationshipLevel++;
 
             return chat.RandomChoice(
-                "that's genuinely good honestly",
+                "that's genuinely good",
                 "not everybody gets that kind of support",
-                "hold onto people like that honestly",
-                "good families make a massive difference honestly",
+                "hold onto people like that",
+                "good families make a massive difference",
                 "that's actually really nice to hear"
+            );
+        }
+
+        // softer emotional replies occasionally
+        if (
+            Random.value < 0.12f
+            && chat.relationshipLevel >= 15
+        )
+        {
+            return chat.RandomChoice(
+                "family stuff really sticks with people",
+                "having people around you matters more than most people admit",
+                "life feels less heavy when you've got decent people around",
+                "good support systems genuinely change people",
+                "people need people sometimes"
             );
         }
 
         if (familyExchanges >= 4)
         {
-            chat.ChangeState(new CasualState(chat));
+            chat.ChangeState(
+                new CasualState(chat)
+            );
 
             return chat.RandomChoice(
-                "families are complicated honestly",
+                "families are complicated",
                 "every family ends up chaotic eventually",
-                "sounds like life's been busy honestly",
-                "people are emotionally exhausting honestly",
+                "sounds like life's been busy",
+                "people are emotionally exhausting",
                 "family conversations always become chaos somehow"
             )
             + ". "
@@ -200,12 +221,12 @@ public class FamilyState : ChatState
         }
 
         return chat.RandomChoice(
-            "families are complicated honestly",
+            "families are complicated",
             "every family's a bit chaotic",
-            "sounds emotionally exhausting honestly",
+            "sounds emotionally exhausting",
             "family life never stays peaceful long",
-            "people are hard work honestly",
-            "that's family life for you honestly"
+            "people are hard work",
+            "that's family life for you"
         );
     }
 }

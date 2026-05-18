@@ -1,27 +1,112 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ConversationPersistence : MonoBehaviour
 {
+    //main save key for entire conversation history
     public string saveKey =
         "ChatHistory";
 
+    //used for future proofing save updates
+    public int saveVersion = 1;
+
+    //maximum stored messages before trimming old ones
+    public int maxSavedEntries = 120;
+
+    //saves individual message into persistent history
     public void SaveConversation(
         string message,
         bool isUser
     )
     {
+        //prevents save corruption if separator appears in text
+        message =
+            message.Replace(
+                "||",
+                ""
+            );
+
+        string history =
+            PlayerPrefs.GetString(
+                saveKey,
+                ""
+            );
+
         string entry =
             (isUser ? "U:" : "A:")
             + message
             + "||";
 
+        history += entry;
+
+        //splits stored history into entries
+        string[] messages =
+            history.Split(
+                "||"
+            );
+
+        List<string> cleaned =
+            new List<string>();
+
+        foreach (
+            string msg
+            in messages
+        )
+        {
+            if (
+                !string.IsNullOrEmpty(
+                    msg
+                )
+            )
+            {
+                cleaned.Add(
+                    msg
+                );
+            }
+        }
+
+        //keeps only newest messages to stop playerprefs being too big
+        if (
+            cleaned.Count
+            > maxSavedEntries
+        )
+        {
+            cleaned.RemoveRange(
+                0,
+                cleaned.Count
+                - maxSavedEntries
+            );
+        }
+
+        string rebuiltHistory =
+            "";
+
+        foreach (
+            string msg
+            in cleaned
+        )
+        {
+            rebuiltHistory +=
+                msg + "||";
+        }
+
         PlayerPrefs.SetString(
             saveKey,
-            PlayerPrefs.GetString(saveKey)
-            + entry
+            rebuiltHistory
         );
+
+        //stores save version for future compatibility
+        PlayerPrefs.SetInt(
+            "SaveVersion",
+            saveVersion
+        );
+
+        //forces save immediately for crash safety
+        PlayerPrefs.Save();
     }
 
+    //conversation history reconstructed on startup
+    //helps simulate long term memory 
     public void LoadConversation(
         ChatManager chat
     )
@@ -42,7 +127,9 @@ public class ConversationPersistence : MonoBehaviour
         }
 
         string[] messages =
-            history.Split("||");
+            history.Split(
+                "||"
+            );
 
         foreach (
             string msg
@@ -58,6 +145,14 @@ public class ConversationPersistence : MonoBehaviour
                 continue;
             }
 
+            //extra safety 
+            if (
+                msg.Length < 3
+            )
+            {
+                continue;
+            }
+
             bool isUser =
                 msg.StartsWith(
                     "U:"
@@ -66,6 +161,7 @@ public class ConversationPersistence : MonoBehaviour
             string text =
                 msg.Substring(2);
 
+            //recreates message bubbles from saved history
             chat.uiManager.CreateMessage(
                 text,
                 isUser,
@@ -74,6 +170,7 @@ public class ConversationPersistence : MonoBehaviour
         }
     }
 
+    //persistent memory contributes to illusion of relationship continuity between sessions
     public void SavePlayerData(
         ChatManager chat
     )
@@ -118,9 +215,27 @@ public class ConversationPersistence : MonoBehaviour
             chat.completedIntro ? 1 : 0
         );
 
+        //stores emotional continuity between sessions
+        PlayerPrefs.SetString(
+            "LastEmotion",
+            chat.lastEmotion
+        );
+
+        PlayerPrefs.SetInt(
+            "EmotionPersistence",
+            chat.emotionPersistence
+        );
+
+       
+        PlayerPrefs.SetFloat(
+            "ChaosLevel",
+            chat.chaosLevel
+        );
+
         PlayerPrefs.Save();
     }
 
+    //reloads player relationship state + emotional context
     public void LoadPlayerData(
         ChatManager chat
     )
@@ -173,12 +288,34 @@ public class ConversationPersistence : MonoBehaviour
                 "CompletedIntro",
                 0
             ) == 1;
+
+        //reloads emotional state memory
+        chat.lastEmotion =
+            PlayerPrefs.GetString(
+                "LastEmotion",
+                ""
+            );
+
+        chat.emotionPersistence =
+            PlayerPrefs.GetInt(
+                "EmotionPersistence",
+                0
+            );
+
+        chat.chaosLevel =
+            PlayerPrefs.GetFloat(
+                "ChaosLevel",
+                0f
+            );
     }
 
+    //clears saved conversation history
     public void ClearConversation()
     {
         PlayerPrefs.DeleteKey(
             saveKey
         );
+
+        PlayerPrefs.Save();
     }
 }

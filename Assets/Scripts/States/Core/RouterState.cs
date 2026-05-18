@@ -2,10 +2,26 @@ using UnityEngine;
 
 public class RouterState : ChatState
 {
+    //router acts as conversational director
+ 
     public RouterState(
         ChatManager manager
     ) : base(manager)
     {
+    }
+
+    //helper function to reduce repeated routing code
+    string RouteToState(
+        ChatState state,
+        string input
+    )
+    {
+        chat.ChangeState(
+            state
+        );
+
+        return chat.currentState
+            .HandleInput(input);
     }
 
     public override string HandleInput(
@@ -14,6 +30,160 @@ public class RouterState : ChatState
     {
         string lower =
             input.ToLower();
+
+        //detects direct name corrections
+        if (
+            lower.StartsWith("my name is ")
+            || lower.StartsWith("call me ")
+            || (
+                (
+                    lower.StartsWith("im ")
+                    || lower.StartsWith("i'm ")
+                )
+                && input.Split(' ').Length <= 3
+            )
+        )
+        {
+            string newName = input;
+
+            newName = newName
+                .Replace("my name is ", "")
+                .Replace("My name is ", "")
+                .Replace("im ", "")
+                .Replace("Im ", "")
+                .Replace("i'm ", "")
+                .Replace("I'm ", "")
+                .Replace("call me ", "")
+                .Replace("Call me ", "")
+                .Trim();
+
+            //safer name validation
+            if (
+                newName.Length >= 2
+                && newName.Length <= 20
+                && char.IsLetter(
+                    newName[0]
+                )
+            )
+            {
+                string cleaned =
+                    char.ToUpper(
+                        newName[0]
+                    )
+                    + newName.Substring(1);
+
+                chat.userName =
+                    cleaned;
+
+                chat.Remember(
+                    "userName",
+                    cleaned
+                );
+
+                return chat.RandomChoice(
+                    "yeah yeah i know "
+                    + cleaned
+                    + ", i'm messing with you",
+
+                    "course i knew that already "
+                    + cleaned,
+
+                    "i know "
+                    + cleaned
+                    + " i was joking",
+
+                    "alright alright "
+                    + cleaned
+                    + ", don't sound so offended",
+
+                    "obviously i know your name's "
+                    + cleaned,
+
+                    "relax "
+                    + cleaned
+                    + " i was just winding you up"
+                );
+            }
+        }
+
+        //high priority emotional detection
+        bool emotionalInput =
+            chat.ContainsAny(
+                lower,
+
+                "sad",
+                "upset",
+                "crying",
+                "stressed",
+                "stress",
+                "overwhelmed",
+                "struggling",
+                "depressed",
+                "anxious",
+                "panic",
+                "alone",
+                "lonely",
+                "hurt",
+                "hurting",
+                "heartbroken",
+                "pain",
+                "tired",
+                "exhausted",
+                "drained",
+                "burnt out",
+                "burned out",
+                "too much",
+                "rough lately",
+                "been hard",
+                "hard lately",
+                "can't cope",
+                "cant cope",
+                "mental health",
+                "not okay",
+                "not been okay",
+                "life sucks",
+                "everything sucks",
+                "i'm struggling",
+                "im struggling",
+                "i feel awful",
+                "feel terrible"
+            );
+
+        //hard conversational topic routing
+        bool hardTopicShift =
+            chat.ContainsAny(
+                lower,
+
+                "school",
+                "college",
+                "uni",
+                "exam",
+                "teacher",
+
+                "work",
+                "job",
+                "boss",
+                "manager",
+                "office",
+                "shift",
+
+                "game",
+                "gaming",
+                "genshin",
+                "honkai",
+
+                "family",
+                "mum",
+                "dad",
+                "brother",
+                "sister",
+
+                "food",
+                "hungry",
+                "pizza",
+                "burger",
+                "takeaway"
+            );
 
         int detectedAge = -1;
 
@@ -42,103 +212,168 @@ public class RouterState : ChatState
                 }
             }
         }
-        
 
+        //emotional routing always takes priority
         if (
-            chat.currentState
-            is SchoolState
+            emotionalInput
         )
         {
-            if (
-                !chat.ContainsAny(
-                    lower,
-                    "game",
-                    "gaming",
-                    "food",
-                    "family",
-                    "sleep",
-                    "tired",
-                    "work",
-                    "job"
-                )
-            )
-            {
-                return chat.currentState
-                    .HandleInput(input);
-            }
-        }
+            chat.lastEmotion =
+                "emotional";
 
-        if (
-            chat.currentState
-            is WorkState
-        )
-        {
-            if (
-                !chat.ContainsAny(
-                    lower,
-                    "school",
-                    "game",
-                    "gaming",
-                    "family",
-                    "food"
-                )
-            )
-            {
-                return chat.currentState
-                    .HandleInput(input);
-            }
-        }
-        if (
-     chat.IsAbsurdInput(lower)
-     && !chat.IsLikelyActivityResponse(lower)
- )
-        {
-            return chat.RandomChoice(
-               
-                "you're impossible to get a straight answer from honestly",
-                "you sound like an npc side character",
-                "i genuinely can't tell when you're joking anymore"
+            Debug.Log(
+                "EMOTIONAL OVERRIDE"
+            );
+
+            return RouteToState(
+                new ComfortState(chat),
+                input
             );
         }
+
+        //random uncle interruptions for realism
+        //helps conversation feel less scripted
         if (
-            chat.currentState
-            is GamingState
+            !(chat.currentState
+            is ComfortState)
+            && !(chat.currentState
+            is ConcernState)
+            && Random.value < 0.05f
+            && !chat.storyActive
+        )
+        {
+            Debug.Log(
+                "UNCLE STORY INTERRUPTION"
+            );
+
+            chat.ChangeState(
+                new UncleStoryState(chat)
+            );
+
+            return chat.RandomChoice(
+                "actually speaking of chaos",
+                "wait that reminds me",
+                "right random story",
+                "okay listen to this",
+                "speaking of disasters",
+                "you know what happened earlier?"
+            );
+        }
+
+        //topic based routing
+        if (
+            hardTopicShift
+            || Random.value < 0.05f
         )
         {
             if (
-                !chat.ContainsAny(
-                    lower,
-                    "school",
-                    "work",
-                    "job",
-                    "family"
+                chat.brain
+                .ContainsGamingTerms(
+                    lower
                 )
             )
             {
-                return chat.currentState
-                    .HandleInput(input);
+                return RouteToState(
+                    new GamingState(chat),
+                    input
+                );
+            }
+
+            if (
+                chat.brain
+                .ContainsSchoolTerms(
+                    lower
+                )
+            )
+            {
+                return RouteToState(
+                    new SchoolState(chat),
+                    input
+                );
+            }
+
+            if (
+                chat.brain
+                .ContainsUniTerms(
+                    lower
+                )
+            )
+            {
+                return RouteToState(
+                    new UniState(chat),
+                    input
+                );
+            }
+
+            if (
+                chat.ContainsAny(
+                    lower,
+                    "work",
+                    "job",
+                    "manager",
+                    "shift",
+                    "boss",
+                    "office"
+                )
+            )
+            {
+                return RouteToState(
+                    new WorkState(chat),
+                    input
+                );
+            }
+
+            if (
+                chat.ContainsAny(
+                    lower,
+                    "family",
+                    "mum",
+                    "dad",
+                    "brother",
+                    "sister",
+                    "uncle",
+                    "aunt"
+                )
+            )
+            {
+                return RouteToState(
+                    new FamilyState(chat),
+                    input
+                );
+            }
+
+            if (
+                chat.ContainsAny(
+                    lower,
+                    "food",
+                    "hungry",
+                    "pizza",
+                    "burger",
+                    "takeaway"
+                )
+            )
+            {
+                return RouteToState(
+                    new FoodState(chat),
+                    input
+                );
+            }
+
+            if (
+                chat.brain
+                .ContainsHobbyTerms(
+                    lower
+                )
+            )
+            {
+                return RouteToState(
+                    new HobbyState(chat),
+                    input
+                );
             }
         }
 
-        if (
-            chat.currentState
-            is FamilyState
-        )
-        {
-            if (
-                !chat.ContainsAny(
-                    lower,
-                    "game",
-                    "gaming",
-                    "school",
-                    "work"
-                )
-            )
-            {
-                return chat.currentState
-                    .HandleInput(input);
-            }
-        }
+        //age detection system
         if (
             detectedAge > 0
             && !chat.knowsUserAge
@@ -147,9 +382,12 @@ public class RouterState : ChatState
             chat.userAge =
                 detectedAge;
 
-            chat.knowsUserAge = true;
+            chat.knowsUserAge =
+                true;
 
-            if (detectedAge < 18)
+            if (
+                detectedAge < 18
+            )
             {
                 chat.lifeStage =
                     "school";
@@ -192,7 +430,9 @@ public class RouterState : ChatState
                 );
             }
 
-            if (detectedAge >= 26)
+            if (
+                detectedAge >= 26
+            )
             {
                 chat.lifeStage =
                     "adult";
@@ -211,14 +451,16 @@ public class RouterState : ChatState
             }
         }
 
+        //asks age naturally after enough interaction
         if (
-     chat.completedIntro
-     && !chat.knowsUserAge
-     && !chat.askedAgeRecently
-     && chat.totalMessagesSent >= 4
- )
+            chat.completedIntro
+            && !chat.knowsUserAge
+            && !chat.askedAgeRecently
+            && chat.totalMessagesSent >= 4
+        )
         {
-            chat.askedAgeRecently = true;
+            chat.askedAgeRecently =
+                true;
 
             chat.ChangeState(
                 new AgeState(chat)
@@ -234,17 +476,14 @@ public class RouterState : ChatState
         }
 
         if (
-            chat.analyser.IsGoodbye(
-                lower
-            )
+            chat.analyser
+            .IsGoodbye(lower)
         )
         {
-            chat.ChangeState(
-                new GoodbyeState(chat)
+            return RouteToState(
+                new GoodbyeState(chat),
+                input
             );
-
-            return chat.currentState
-                .HandleInput(input);
         }
 
         if (
@@ -252,12 +491,10 @@ public class RouterState : ChatState
             .IsSingingRequest(lower)
         )
         {
-            chat.ChangeState(
-                new SingingState(chat)
+            return RouteToState(
+                new SingingState(chat),
+                input
             );
-
-            return chat.currentState
-                .HandleInput(input);
         }
 
         if (
@@ -265,12 +502,10 @@ public class RouterState : ChatState
             .IsRoleplay(lower)
         )
         {
-            chat.ChangeState(
-                new RoleplayState(chat)
+            return RouteToState(
+                new RoleplayState(chat),
+                input
             );
-
-            return chat.currentState
-                .HandleInput(input);
         }
 
         if (
@@ -278,12 +513,10 @@ public class RouterState : ChatState
             .IsTeasing(lower)
         )
         {
-            chat.ChangeState(
-                new JokeState(chat)
+            return RouteToState(
+                new JokeState(chat),
+                input
             );
-
-            return chat.currentState
-                .HandleInput(input);
         }
 
         if (
@@ -291,7 +524,9 @@ public class RouterState : ChatState
             || lower.Contains(
                 "embarrassed"
             )
-            || lower.Contains("cringe")
+            || lower.Contains(
+                "cringe"
+            )
             || lower.Contains(
                 "humiliating"
             )
@@ -300,12 +535,10 @@ public class RouterState : ChatState
             )
         )
         {
-            chat.ChangeState(
-                new EmbarrasedState(chat)
+            return RouteToState(
+                new EmbarrasedState(chat),
+                input
             );
-
-            return chat.currentState
-                .HandleInput(input);
         }
 
         if (
@@ -320,221 +553,20 @@ public class RouterState : ChatState
             )
         )
         {
-            chat.ChangeState(
-                new DefensiveState(chat)
+            return RouteToState(
+                new DefensiveState(chat),
+                input
             );
-
-            return chat.currentState
-                .HandleInput(input);
         }
 
+        //intentional conversational repair behaviour
+        //helps simulate human reading mistakes
         if (
-            lower.Contains("sad")
-            || lower.Contains("upset")
-            || lower.Contains("crying")
-            || lower.Contains(
-                "stressed"
-            )
-            || lower.Contains(
-                "overwhelmed"
-            )
-            || lower.Contains(
-                "struggling"
-            )
-            || lower.Contains(
-                "depressed"
-            )
-            || lower.Contains(
-                "anxious"
-            )
-        )
-        {
-            chat.ChangeState(
-                new ConcernState(chat)
-            );
-
-            return chat.currentState
-                .HandleInput(input);
-        }
-
-        if (
-            chat.brain
-            .ContainsGamingTerms(
-                lower
-            )
-        )
-        {
-            chat.ChangeState(
-                new GamingState(chat)
-            );
-
-            return chat.currentState
-                .HandleInput(input);
-        }
-
-        if (
-            chat.knowsUserAge
-            && chat.lifeStage
-            == "school"
-        )
-        {
-            if (
-                chat.brain
-                .ContainsSchoolTerms(
-                    lower
-                )
-            )
-            {
-                chat.ChangeState(
-                    new SchoolState(chat)
-                );
-
-                return chat.currentState
-                    .HandleInput(input);
-            }
-        }
-
-        if (
-            chat.knowsUserAge
-            && (
-                chat.lifeStage
-                == "youngAdult"
-                || chat.lifeStage
-                == "uni"
-            )
-        )
-        {
-            if (
-                chat.brain
-                .ContainsUniTerms(
-                    lower
-                )
-            )
-            {
-                chat.ChangeState(
-                    new UniState(chat)
-                );
-
-                return chat.currentState
-                    .HandleInput(input);
-            }
-        }
-
-        if (
-            chat.knowsUserAge
-            && (
-                chat.lifeStage
-                == "adult"
-                || chat.lifeStage
-                == "youngAdult"
-            )
-        )
-        {
-            if (
-                chat.ContainsAny(
-                    lower,
-                    "work",
-                    "job",
-                    "manager",
-                    "shift",
-                    "coworker",
-                    "boss",
-                    "salary",
-                    "pay",
-                    "office"
-                )
-            )
-            {
-                chat.ChangeState(
-                    new WorkState(chat)
-                );
-
-                return chat.currentState
-                    .HandleInput(input);
-            }
-        }
-
-        if (
-            chat.brain
-            .ContainsHobbyTerms(
-                lower
-            )
-        )
-        {
-            chat.ChangeState(
-                new HobbyState(chat)
-            );
-
-            return chat.currentState
-                .HandleInput(input);
-        }
-
-        if (
-            chat.ContainsAny(
-                lower,
-                "food",
-                "hungry",
-                "eat",
-                "takeaway",
-                "snack",
-                "meal",
-                "pizza",
-                "burger"
-            )
-        )
-        {
-            chat.ChangeState(
-                new FoodState(chat)
-            );
-
-            return chat.currentState
-                .HandleInput(input);
-        }
-
-        if (
-            chat.ContainsAny(
-                lower,
-                "family",
-                "mum",
-                "mom",
-                "dad",
-                "sister",
-                "brother",
-                "nan",
-                "grandad",
-                "cousin",
-                "uncle",
-                "aunt"
-            )
-        )
-        {
-            chat.ChangeState(
-                new FamilyState(chat)
-            );
-
-            return chat.currentState
-                .HandleInput(input);
-        }
-
-        if (
-            chat.ContainsAny(
-                lower,
-                "sleep",
-                "tired",
-                "exhausted",
-                "drained"
-            )
-        )
-        {
-            chat.ChangeState(
-                new TiredState(chat)
-            );
-
-            return chat.currentState
-                .HandleInput(input);
-        }
-        if (
-            chat.ShouldMisread()
+            !(chat.currentState
+            is ComfortState)
+            && !(chat.currentState
+            is ConcernState)
+            && chat.ShouldMisread()
             && input.Length > 8
             && Random.value < 0.6f
             && chat.lastEmotion == ""
@@ -543,56 +575,54 @@ public class RouterState : ChatState
             string[] words =
                 input.Split(' ');
 
-            if (words.Length > 0)
+            if (
+                words.Length > 0
+            )
             {
                 return chat.RandomChoice(
                     "wait did you just say '"
                     + words[0]
                     + "'?",
+
                     "hang on i completely misread that for a second",
+
                     "thought you said something completely different there",
+
                     "my brain absolutely failed reading that message",
+
                     "wait no ignore me i read that completely wrong"
                 );
             }
         }
 
+        //long term chaos callback system
         if (
-     Random.value < 0.04f
-     && !chat.storyActive
-     && chat.lastEmotion == ""
- )
-        {
-            chat.ChangeState(
-                new UncleStoryState(chat)
-            );
-
-            return chat.RandomChoice(
-                "actually speaking of chaos",
-                "wait that reminds me actually",
-                "you know what listen to this",
-                "right random story",
-                "speaking of disasters"
-            );
-        }
-
-        if (
-            chat.chaosLevel > 3f
+            !(chat.currentState
+            is ComfortState)
+            && chat.chaosLevel > 3f
             && Random.value < 0.12f
         )
         {
             return chat.RandomChoice(
                 "your life genuinely sounds like a sitcom",
+
                 "every time we talk something chaotic's happening",
+
                 "you attract disasters unbelievably fast",
+
                 "i swear chaos follows you specifically",
+
                 "your existence is stressful"
             );
         }
 
+        //contextual memory callbacks
         if (
             chat.HasMemory(
                 "favoriteGame"
+            )
+            && chat.brain.ContainsGamingTerms(
+                lower
             )
             && Random.value < 0.05f
         )
@@ -603,11 +633,13 @@ public class RouterState : ChatState
                     "favoriteGame"
                 )
                 + "?",
+
                 "wait are you still playing "
                 + chat.Recall(
                     "favoriteGame"
                 )
                 + " lately?",
+
                 "random thought but i still don't understand half of "
                 + chat.Recall(
                     "favoriteGame"
@@ -615,11 +647,15 @@ public class RouterState : ChatState
             );
         }
 
+        //relationship based conversational callbacks
         if (
-    Random.value < 0.07f
-    && chat.relationshipLevel > 10
-    && chat.lastEmotion == ""
-)
+            !(chat.currentState
+            is ComfortState)
+            && Random.value < 0.07f
+            && chat.relationshipLevel > 10
+            && chat.totalMessagesSent > 15
+            && chat.lastEmotion == ""
+        )
         {
             return chat.RandomChoice(
                 "wait no actually",
@@ -632,11 +668,10 @@ public class RouterState : ChatState
             + chat.GetConversationContinuation();
         }
 
-        chat.ChangeState(
-            new CasualState(chat)
+        //fallback casual conversation state
+        return RouteToState(
+            new CasualState(chat),
+            input
         );
-
-        return chat.currentState
-            .HandleInput(input);
     }
 }

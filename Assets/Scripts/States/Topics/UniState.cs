@@ -15,6 +15,7 @@ public class UniState : ChatState
         chat.currentMood =
             ChatManager.Mood.Concerned;
 
+        // more familiar intros for close users
         if (chat.relationshipLevel >= 20)
         {
             chat.SendAIImmediate(
@@ -79,6 +80,21 @@ public class UniState : ChatState
         }
 
         if (
+            lower.Contains("all nighter")
+            || lower.Contains("last minute")
+            || lower.Contains("procrastinating")
+        )
+        {
+            return chat.RandomChoice(
+                "students always swear they'll start earlier next time",
+                "last minute panic is basically part of university culture",
+                "your sleep schedule just lost the battle",
+                "procrastination always becomes fear eventually",
+                "academic panic mode activated"
+            );
+        }
+
+        if (
             lower.Contains("good")
             || lower.Contains("passed")
             || lower.Contains("finished")
@@ -93,11 +109,11 @@ public class UniState : ChatState
 
             return chat.RandomChoice(
                 "look at you being productive",
-                "proud of you honestly",
+                "proud of you",
                 "see? you survived",
                 "academic weapon apparently",
                 "knew you'd pull it off",
-                "massive honestly"
+                "massive"
             )
             + " "
             + chat.Emoji("thumbsup");
@@ -167,7 +183,7 @@ public class UniState : ChatState
                 "you sound completely drained",
                 "your brain needs proper rest",
                 "uni sleep schedules are genuinely horrifying",
-                "students survive on fumes honestly"
+                "students survive on fumes"
             );
         }
 
@@ -185,7 +201,7 @@ public class UniState : ChatState
                 "you definitely overwork yourself on projects",
                 "creative work sounds rewarding but emotionally dangerous",
                 "i already know you've been obsessing over details",
-                "creative deadlines seem especially evil honestly"
+                "creative deadlines seem especially evil"
             )
             + ". "
             + chat.RandomChoice(
@@ -205,7 +221,7 @@ public class UniState : ChatState
         {
             return chat.RandomChoice(
                 "presentations genuinely feel like public survival challenges",
-                "standing in front of people talking sounds horrifying honestly",
+                "standing in front of people talking sounds horrifying",
                 "posters always take way longer than expected somehow",
                 "academic presentations should count as emotional damage",
                 "you overthinking every little detail yet?"
@@ -222,7 +238,7 @@ public class UniState : ChatState
                 "grades genuinely control people's emotions",
                 "you stressing over marks again?",
                 "academic validation really has a grip on people",
-                "one number suddenly decides your mood for the week honestly",
+                "one number suddenly decides your mood for the week",
                 "bet you're overthinking it already"
             );
         }
@@ -253,6 +269,7 @@ public class UniState : ChatState
             );
         }
 
+        // random uncle filler
         if (
             Random.value < 0.18f
         )
@@ -278,7 +295,7 @@ public class UniState : ChatState
                 "academic life sounds emotionally exhausting",
                 "you seriously need proper rest outside uni",
                 "your brain deserves compensation",
-                "student life sounds relentless honestly"
+                "student life sounds relentless"
             )
             + ". "
             + chat.RandomChoice(

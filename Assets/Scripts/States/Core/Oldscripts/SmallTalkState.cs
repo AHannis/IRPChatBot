@@ -1,5 +1,5 @@
 using UnityEngine;
-
+//OLD ORIGINAL SCRIPT BEFORE CASUAL STATE WAS MADE
 public class SmallTalkState : ChatState
 {
     int exchanges = 0;

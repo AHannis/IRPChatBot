@@ -3,32 +3,38 @@ using UnityEngine;
 
 public class ResponseProcessor : MonoBehaviour
 {
+    //main post-processing layer
+    //helps hide repetition + robotic patterns
+    //similar to eliza style conversational illusion techniques
     public string ProcessResponse(
         string reply,
         ChatManager chat
     )
     {
+        //reduces excessive questioning
         reply =
             PreventQuestionSpam(
                 reply,
                 chat
             );
 
+        //prevents repeated phrasing
         reply =
             PreventRepeatReplies(
                 reply,
                 chat
             );
 
+        //small cleanup pass for more natural text flow
         reply =
-            chat.typingDots
-            .AddOccasionalTypo(
+            CleanupResponse(
                 reply
             );
 
         return reply;
     }
 
+    //prevents bot from sounding too interrogative
     string PreventQuestionSpam(
         string reply,
         ChatManager chat
@@ -40,6 +46,7 @@ public class ResponseProcessor : MonoBehaviour
             && Random.value < 0.7f
         )
         {
+            //softens questions into statements
             reply =
                 reply.Replace(
                     "?",
@@ -50,6 +57,12 @@ public class ResponseProcessor : MonoBehaviour
                 reply.Replace(
                     "what's",
                     "thats"
+                );
+
+            reply =
+                reply.Replace(
+                    "whatve",
+                    "you've mentioned"
                 );
 
             reply =
@@ -68,18 +81,16 @@ public class ResponseProcessor : MonoBehaviour
         return reply;
     }
 
+    //avoids repeated responses ruining realism
     string PreventRepeatReplies(
         string reply,
         ChatManager chat
     )
     {
+        //exact duplicate check
         if (
             chat.recentAIReplies.Contains(
                 reply
-            )
-            || StartsSimilar(
-                reply,
-                chat.recentAIReplies
             )
         )
         {
@@ -87,9 +98,34 @@ public class ResponseProcessor : MonoBehaviour
                 .GetNaturalReply();
         }
 
+        //checks for similar sentence openings
+        if (
+            StartsSimilar(
+                reply,
+                chat.recentAIReplies
+            )
+        )
+        {
+            //occasionally redirects into followup instead
+            if (
+                Random.value < 0.35f
+            )
+            {
+                return
+                    chat.brain.GetNaturalReply()
+                    + ". "
+                    + chat.brain.GetGeneralFollowUp();
+            }
+
+            return chat.brain
+                .GetNaturalReply();
+        }
+
         return reply;
     }
 
+    //detects responses beginning too similarly
+    //helps prevent repetitive bot 
     public bool StartsSimilar(
         string newReply,
         List<string> oldReplies
@@ -146,6 +182,7 @@ public class ResponseProcessor : MonoBehaviour
                 }
             }
 
+            //high similarity threshold
             if (
                 matchingChars >= 14
             )
@@ -155,5 +192,32 @@ public class ResponseProcessor : MonoBehaviour
         }
 
         return false;
+    }
+
+    //small text cleanup system
+    //helps responses feel less generated
+    string CleanupResponse(
+        string reply
+    )
+    {
+        reply =
+            reply.Replace(
+                "  ",
+                " "
+            );
+
+        reply =
+            reply.Replace(
+                "..",
+                "."
+            );
+
+        reply =
+            reply.Replace(
+                " .",
+                "."
+            );
+
+        return reply.Trim();
     }
 }

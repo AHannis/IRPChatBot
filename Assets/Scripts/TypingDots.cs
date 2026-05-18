@@ -4,7 +4,12 @@ using UnityEngine.UI;
 
 public class TypingDots : MonoBehaviour
 {
+    //main container showing bot is 'thinking'
     public GameObject typingUI;
+
+    public AudioSource typingAudio;
+
+    public AudioClip typingLoop;
 
     public Image dot1;
 
@@ -14,11 +19,27 @@ public class TypingDots : MonoBehaviour
 
     string lastCorrection = "";
 
+    //handling animated typing dot loop
     public IEnumerator AnimateDots(
         int loops
     )
     {
-        typingUI.SetActive(true);
+        typingUI.SetActive(
+            true
+        );
+
+        if (
+            typingAudio != null
+            && typingLoop != null
+        )
+        {
+            typingAudio.clip =
+                typingLoop;
+
+            typingAudio.loop = true;
+
+            typingAudio.Play();
+        }
 
         for (
             int i = 0;
@@ -31,7 +52,10 @@ public class TypingDots : MonoBehaviour
             dot3.enabled = false;
 
             yield return new WaitForSeconds(
-                0.3f
+                Random.Range(
+                    0.18f,
+                    0.42f
+                )
             );
 
             dot1.enabled = true;
@@ -39,7 +63,10 @@ public class TypingDots : MonoBehaviour
             dot3.enabled = false;
 
             yield return new WaitForSeconds(
-                0.3f
+                Random.Range(
+                    0.18f,
+                    0.42f
+                )
             );
 
             dot1.enabled = true;
@@ -47,17 +74,19 @@ public class TypingDots : MonoBehaviour
             dot3.enabled = true;
 
             yield return new WaitForSeconds(
-                0.3f
+                Random.Range(
+                    0.18f,
+                    0.42f
+                )
             );
 
             dot1.enabled = false;
             dot2.enabled = false;
             dot3.enabled = false;
         }
-
-        typingUI.SetActive(false);
     }
 
+    //wrapper coroutine to trigger typing animation
     public IEnumerator PlayTyping(
         int loops
     )
@@ -67,17 +96,34 @@ public class TypingDots : MonoBehaviour
                 loops
             )
         );
+
+        typingUI.SetActive(
+            false
+        );
+
+        if (
+            typingAudio != null
+        )
+        {
+            typingAudio.Stop();
+        }
+
+        dot1.enabled = false;
+        dot2.enabled = false;
+        dot3.enabled = false;
     }
 
     public IEnumerator PlayTyping()
     {
         yield return StartCoroutine(
-            AnimateDots(
+            PlayTyping(
                 2
             )
         );
     }
 
+    //determines how long animation should play dependent on length and topic complexity
+    //adding more realistic feel than instant reply and calculates length of reply to message animate ratio
     public int CalculateTypingLoops(
         string reply
     )
@@ -85,49 +131,98 @@ public class TypingDots : MonoBehaviour
         int length =
             reply.Length;
 
+        int loops = 1;
+
         if (
-            length < 25
+            length > 35
         )
         {
-            return 1;
+            loops++;
         }
 
         if (
-            length < 70
+            length > 90
         )
         {
-            return 2;
+            loops++;
         }
 
-        return 3;
+        if (
+            reply.Contains("?")
+        )
+        {
+            loops++;
+        }
+
+        if (
+            reply.Contains("...")
+        )
+        {
+            loops++;
+        }
+
+        return Mathf.Clamp(
+            loops,
+            1,
+            5
+        );
     }
 
+    //simulates deep thinking before bot replies
     public float CalculateThinkTime(
         string input
     )
     {
         float time =
-            0.4f
-            + (
-                input.Length
-                * 0.015f
+            Random.Range(
+                0.25f,
+                0.9f
             );
+
+        time +=
+            input.Length * 0.01f;
+
+        if (
+            input.Contains("?")
+        )
+        {
+            time += 0.4f;
+        }
+
+        if (
+            input.Length > 80
+        )
+        {
+            time += 0.5f;
+        }
 
         return Mathf.Clamp(
             time,
-            0.4f,
-            2.5f
+            0.25f,
+            3.5f
         );
     }
 
+    //more human feel with occasional typos that follows up later with correction in HasCorrection and GetCorrection
     public string AddOccasionalTypo(
         string text
     )
     {
+        //stores typo corrections that may appear after message is sent
         lastCorrection = "";
 
         if (
-            Random.value > 0.08f
+            text.Contains("take care")
+            || text.Contains("you alright")
+            || text.Contains("i'm listening")
+            || text.Contains("here for you")
+        )
+        {
+            return text;
+        }
+
+        if (
+            Random.value > 0.05f
         )
         {
             return text;
@@ -146,6 +241,7 @@ public class TypingDots : MonoBehaviour
             lastCorrection =
                 "what's*";
         }
+
         else if (
             text.Contains("whatever")
         )
@@ -159,6 +255,7 @@ public class TypingDots : MonoBehaviour
             lastCorrection =
                 "whatever*";
         }
+
         else if (
             text.Contains("you're")
         )
@@ -172,6 +269,7 @@ public class TypingDots : MonoBehaviour
             lastCorrection =
                 "you're*";
         }
+
         else if (
             text.Contains("that's")
         )
@@ -185,6 +283,7 @@ public class TypingDots : MonoBehaviour
             lastCorrection =
                 "that's*";
         }
+
         else if (
             text.Contains("been")
         )
@@ -197,6 +296,13 @@ public class TypingDots : MonoBehaviour
 
             lastCorrection =
                 "been*";
+        }
+
+        if (
+            Random.value < 0.35f
+        )
+        {
+            lastCorrection = "";
         }
 
         return text;

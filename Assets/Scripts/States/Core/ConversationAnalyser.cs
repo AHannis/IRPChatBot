@@ -1,18 +1,24 @@
+using System.Globalization;
 using UnityEngine;
 
 public class ConversationAnalyser : MonoBehaviour
 {
     ChatManager chat;
 
+    //tracks most recent detected topic
     public string lastTopic = "";
 
+    //stores last direct question asked
     public string lastQuestionAsked = "";
 
+    //stores last detected conversational intent
     public string lastIntent = "";
 
+    //tracks waiting states for followups
     public bool waitingForVisitAnswer = false;
 
     public bool userSaidGoodbye = false;
+
 
     public bool singingMode = false;
 
@@ -20,6 +26,7 @@ public class ConversationAnalyser : MonoBehaviour
 
     public int exchangesSinceVisitQuestion = 0;
 
+    //modern slang detection list
     string[] weirdInputs =
     {
         "skibidi",
@@ -36,6 +43,7 @@ public class ConversationAnalyser : MonoBehaviour
         "npc"
     };
 
+    //prevents accidental fake names
     string[] blockedNameWords =
     {
         "yes",
@@ -68,6 +76,7 @@ public class ConversationAnalyser : MonoBehaviour
             GetComponent<ChatManager>();
     }
 
+    //main conversation analysis pipeline
     public void Analyse(
         string input
     )
@@ -80,12 +89,34 @@ public class ConversationAnalyser : MonoBehaviour
         DetectTopics(lower);
 
         HandleEmotionAnalysis(lower);
+
+        //emotional decay system
+        //lets emotions naturally fade over time
+        if (
+            chat.emotionPersistence > 0
+        )
+        {
+            chat.emotionPersistence--;
+        }
+        else
+        {
+            chat.lastEmotion = "";
+        }
+
+        //syncs analyser topic with chat manager
+        //helps eliza style callbacks feel consistent
+        chat.lastTopic =
+            lastTopic;
     }
 
+    //detects conversational subjects/topics
     void DetectTopics(
         string lower
     )
     {
+        chat.previousTopic =
+            chat.lastTopic;
+
         if (
             lower.Contains("visit")
         )
@@ -109,7 +140,20 @@ public class ConversationAnalyser : MonoBehaviour
         {
             lastTopic = "family";
         }
-
+        if (
+                ContainsAny(
+                lower,
+                "girlfriend",
+                "boyfriend",
+                "dating",
+                "relationship",
+                "partner",
+                "crush"
+                )
+        )
+                        {
+            lastTopic = "relationship";
+        }
         if (
             ContainsAny(
                 lower,
@@ -192,10 +236,37 @@ public class ConversationAnalyser : MonoBehaviour
         }
     }
 
+    //emotion detection system
     void HandleEmotionAnalysis(
         string lower
     )
     {
+        //detects masking behaviour
+        //inspired by emotional contradiction patterns
+        if (
+            ContainsAny(
+                lower,
+                "stressed",
+                "overwhelmed",
+                "panic"
+            )
+            &&
+            ContainsAny(
+                lower,
+                "haha",
+                "lol",
+                "lmao"
+            )
+        )
+        {
+            SetEmotion(
+                "maskingStress",
+                4
+            );
+
+            return;
+        }
+
         if (
             ContainsAny(
                 lower,
@@ -339,6 +410,7 @@ public class ConversationAnalyser : MonoBehaviour
         }
     }
 
+    //sets emotional state persistence
     void SetEmotion(
         string emotion,
         int persistence
@@ -353,18 +425,29 @@ public class ConversationAnalyser : MonoBehaviour
         chat.emotionLoops = 0;
     }
 
+    //safe keyword detection with word boundaries
+    //prevents false positives from partial words
     public bool ContainsAny(
         string input,
         params string[] words
     )
     {
+        string padded =
+            " "
+            + input.ToLower()
+            + " ";
+
         foreach (
             string w
             in words
         )
         {
             if (
-                input.Contains(w)
+                padded.Contains(
+                    " "
+                    + w.ToLower()
+                    + " "
+                )
             )
             {
                 return true;
@@ -374,6 +457,7 @@ public class ConversationAnalyser : MonoBehaviour
         return false;
     }
 
+    //light fuzzy matching system
     public bool ContainsFuzzy(
         string input,
         params string[] words
@@ -431,6 +515,7 @@ public class ConversationAnalyser : MonoBehaviour
         return false;
     }
 
+    //detects low information replies
     public bool IsShortReply(
         string input
     )
@@ -446,6 +531,14 @@ public class ConversationAnalyser : MonoBehaviour
             .Replace(",", "")
             .Replace(":", "")
             .Replace(";", "");
+
+        if (
+            lower.Split(' ').Length <= 2
+            && lower.Length <= 14
+        )
+        {
+            return true;
+        }
 
         return
             lower == "yeah"
@@ -470,6 +563,7 @@ public class ConversationAnalyser : MonoBehaviour
             || lower == "true haha";
     }
 
+    //checks if input is likely a username
     public bool IsLikelyName(
         string input,
         string currentUserName
@@ -522,12 +616,15 @@ public class ConversationAnalyser : MonoBehaviour
         );
     }
 
+    //cleans + formats detected names
     public string CleanName(
         string raw
     )
     {
         if (
-            string.IsNullOrWhiteSpace(raw)
+            string.IsNullOrWhiteSpace(
+                raw
+            )
         )
         {
             return "Kid";
@@ -538,25 +635,23 @@ public class ConversationAnalyser : MonoBehaviour
         string name = raw;
 
         if (
-            string.IsNullOrEmpty(name)
+            string.IsNullOrEmpty(
+                name
+            )
         )
         {
             return "Kid";
         }
 
-        if (
-            name.Length == 1
-        )
-        {
-            return name.ToUpper();
-        }
-
-        return
-            char.ToUpper(name[0])
-            + name.Substring(1)
-            .ToLower();
+        return CultureInfo
+            .CurrentCulture
+            .TextInfo
+            .ToTitleCase(
+                name.ToLower()
+            );
     }
 
+    //goodbye detection
     public bool IsGoodbye(
         string lower
     )
@@ -564,40 +659,91 @@ public class ConversationAnalyser : MonoBehaviour
         return
             lower.Contains("bye")
             || lower.Contains("goodbye")
+            || lower.Contains("byeeeeee")
+            || lower.Contains("byeeeeeeeee")
+            || lower.Contains("byee")
+            || lower.Contains("byeee")
+            || lower.Contains("nap")
+            || lower.Contains("going to nap")
+            || lower.Contains("need a nap")
+            || lower.Contains("byeeee")
             || lower.Contains("cya")
             || lower.Contains("see you")
             || lower.Contains("gn")
             || lower.Contains("goodnight")
-            || lower.Contains("talk later");
+            || lower.Contains("talk later")
+            || lower.Contains("going to bed")
+            || lower.Contains("going bed")
+            || lower.Contains("im going to sleep")
+            || lower.Contains("i'm going to sleep")
+            || lower.Contains("going sleep")
+            || lower.Contains("sleep now")
+            || lower.Contains("off to bed")
+            || lower.Contains("night")
+            || lower.Contains("sleeping now");
     }
 
+    //roleplay/fantasy detection
     public bool IsRoleplay(
         string lower
     )
     {
         return
-            lower.Contains("power ranger")
-            || lower.Contains("super power")
-            || lower.Contains("saving the world")
-            || lower.Contains("wizard")
-            || lower.Contains("dragon")
-            || lower.Contains("batman")
-            || lower.Contains("superhero")
-            || lower.Contains("villain");
+            (
+                lower.Contains(
+                    "pretend"
+                )
+                || lower.Contains(
+                    "roleplay"
+                )
+                || lower.Contains(
+                    "imagine"
+                )
+            )
+            &&
+            (
+                lower.Contains(
+                    "wizard"
+                )
+                || lower.Contains(
+                    "dragon"
+                )
+                || lower.Contains(
+                    "batman"
+                )
+                || lower.Contains(
+                    "superhero"
+                )
+                || lower.Contains(
+                    "villain"
+                )
+            );
     }
 
+    //music/singing request detection
     public bool IsSingingRequest(
         string lower
     )
     {
         return
-            lower.Contains("sing with me")
-            || lower.Contains("lyrics")
-            || lower.Contains("sing")
-            || lower.Contains("song")
-            || lower.Contains("music");
+            lower.Contains(
+                "sing with me"
+            )
+            || lower.Contains(
+                "lyrics"
+            )
+            || lower.Contains(
+                "sing"
+            )
+            || lower.Contains(
+                "song"
+            )
+            || lower.Contains(
+                "music"
+            );
     }
 
+    //detects teasing/mockery
     public bool IsTeasing(
         string lower
     )
@@ -613,6 +759,8 @@ public class ConversationAnalyser : MonoBehaviour
             || lower.Contains("bully");
     }
 
+    //detects weird/slang inputs
+    //used for eliza style "what does that mean?" moments
     public bool ContainsWeirdInput(
         string input,
         ChatManager chat
@@ -648,6 +796,8 @@ public class ConversationAnalyser : MonoBehaviour
 
             if (
                 clean.Length >= 9
+                && !clean.Contains("http")
+                && !clean.Contains("@")
             )
             {
                 bool normalWord =
@@ -655,17 +805,30 @@ public class ConversationAnalyser : MonoBehaviour
                     || clean.Contains("tion")
                     || clean.Contains("ment")
                     || clean.Contains("ally")
-                    || clean.Contains("able");
+                    || clean.Contains("able")
+                    || clean.Contains("friend")
+                    || clean.Contains("girl")
+                    || clean.Contains("boy")
+                    || clean.Contains("relationship")
+                    || clean.Contains("school")
+                    || clean.Contains("course")
+                    || clean.Contains("student");
 
                 if (
                     !normalWord
-                    && Random.value < 0.08f
+                    && !char.IsUpper(clean[0])
+                    && clean.Split(' ').Length == 1
                 )
                 {
-                    chat.pendingSlangWord =
-                        clean;
+                    if (
+                        clean.Length >= 12
+                    )
+                    {
+                        chat.pendingSlangWord =
+                            clean;
 
-                    return true;
+                        return true;
+                    }
                 }
             }
         }
@@ -673,6 +836,7 @@ public class ConversationAnalyser : MonoBehaviour
         return false;
     }
 
+    //returns weird/slang word
     public string GetDetectedWeirdWord(
         string input
     )
@@ -695,6 +859,7 @@ public class ConversationAnalyser : MonoBehaviour
         return "that";
     }
 
+    //detects reciprocal conversation replies
     public bool IsReciprocalResponse(
         string lower
     )
@@ -727,10 +892,30 @@ public class ConversationAnalyser : MonoBehaviour
             || lower == "and you haha"
             || lower == "and you lol";
     }
+    public bool IsResolutionResponse(
+    string lower
+)
+    {
+        return
+            ContainsAny(
+                lower,
+                "finished",
+                "done",
+                "completed",
+                "sorted",
+                "fixed",
+                "passed",
+                "resolved",
+                "submitted",
+                "got it done",
+                "all done"
+            );
+    }
 
     public string ExtractNameFlexible(
         string input
     )
+
     {
         string lower =
             input.ToLower();

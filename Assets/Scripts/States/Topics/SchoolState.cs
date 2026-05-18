@@ -15,6 +15,7 @@ public class SchoolState : ChatState
         chat.currentMood =
             ChatManager.Mood.Playful;
 
+        // more personal openings for closer users
         if (chat.relationshipLevel >= 20)
         {
             chat.SendAIImmediate(
@@ -49,6 +50,39 @@ public class SchoolState : ChatState
 
         string lower =
             input.ToLower();
+
+        // IMPORTANT:
+        // school topic detection comes first
+        // so generic fallback systems don't steal the response
+        if (
+            chat.ContainsAny(
+                lower,
+                "homework",
+                "exam",
+                "revision",
+                "test",
+                "coursework",
+                "gcse"
+            )
+        )
+        {
+            return chat.RandomChoice(
+                "school really tries consuming your entire life",
+                "revision sounds miserable",
+                "i don't miss exams at all",
+                "half of school is just stress management",
+                "teachers act like their subject is the only one you have",
+                "revision season destroys people mentally"
+            )
+            + ". "
+            + chat.RandomChoice(
+                "you coping alright with it?",
+                "what subject's causing the suffering?",
+                "you revising properly or pretending?",
+                "bet everyone's panicking already",
+                "you leaving everything until the last minute again?"
+            );
+        }
 
         if (chat.lastEmotion == "socialStress")
         {
@@ -93,33 +127,6 @@ public class SchoolState : ChatState
         }
 
         if (
-            lower.Contains("homework")
-            || lower.Contains("exam")
-            || lower.Contains("revision")
-            || lower.Contains("test")
-            || lower.Contains("coursework")
-            || lower.Contains("gcse")
-        )
-        {
-            return chat.RandomChoice(
-                "school really tries consuming your entire life",
-                "revision sounds miserable",
-                "i don't miss exams at all",
-                "half of school is just stress management",
-                "teachers act like their subject is the only one you have",
-                "revision season destroys people mentally"
-            )
-            + ". "
-            + chat.RandomChoice(
-                "you coping alright with it?",
-                "what subject's causing the suffering?",
-                "you revising properly or pretending?",
-                "bet everyone's panicking already",
-                "you leaving everything until the last minute again?"
-            );
-        }
-
-        if (
             lower.Contains("friend")
             || lower.Contains("mate")
             || lower.Contains("people")
@@ -141,6 +148,26 @@ public class SchoolState : ChatState
                 "you staying out of drama or joining in?",
                 "bet somebody's arguing again",
                 "school friendships change every five minutes"
+            );
+        }
+
+        // social media chaos
+        if (
+            chat.ContainsAny(
+                lower,
+                "tiktok",
+                "snapchat",
+                "instagram",
+                "group chat"
+            )
+        )
+        {
+            return chat.RandomChoice(
+                "group chats become warzones unbelievably fast",
+                "social media drama spreads instantly at school",
+                "teenagers somehow know everybody's business immediately",
+                "school gossip mixed with social media sounds terrifying",
+                "one message somehow becomes an entire week's drama"
             );
         }
 
@@ -232,7 +259,7 @@ public class SchoolState : ChatState
                 "well that's better than total disaster",
                 "look at you functioning properly",
                 "i'll take that as a win",
-                "honestly that's better than most people sound"
+                "that's better than most people sound"
             )
             + ". "
             + chat.RandomChoice(
@@ -293,6 +320,7 @@ public class SchoolState : ChatState
             );
         }
 
+        // random uncle filler
         if (
             Random.value < 0.15f
         )
@@ -320,7 +348,7 @@ public class SchoolState : ChatState
                 "school really is its own universe",
                 "i don't miss school at all",
                 "you'll survive it somehow",
-                "honestly being a teenager sounds tiring"
+                "being a teenager sounds tiring"
             )
             + ". "
             + chat.RandomChoice(
@@ -339,7 +367,7 @@ public class SchoolState : ChatState
             "secondary school genuinely sounds exhausting",
             "i'm too old for school problems now",
             "sounds about right",
-            "teenage life sounds stressful honestly"
+            "teenage life sounds stressful"
         );
     }
 }

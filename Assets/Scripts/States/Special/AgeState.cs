@@ -2,7 +2,9 @@ using UnityEngine;
 
 public class AgeState : ChatState
 {
-    public AgeState(ChatManager manager) : base(manager)
+    public AgeState(
+        ChatManager manager
+    ) : base(manager)
     {
     }
 
@@ -16,22 +18,20 @@ public class AgeState : ChatState
         int detectedAge =
             ExtractAge(lower);
 
+        // exaggerated replies make the character feel reactive and human
         if (
-            lower.Contains("10285")
-            || lower.Contains("999")
+            lower.Contains("999")
             || lower.Contains("1000")
             || lower.Contains("immortal")
-            || lower.Contains("ageless")
-            || lower.Contains("ancient")
             || detectedAge >= 80
         )
         {
             return chat.RandomChoice(
-                "right so you're either immortal or lying honestly",
+                "right so you're either immortal or lying",
                 "i'm not saving fossil records into my contacts",
                 "you absolutely made that age up",
                 "right okay ancient one",
-                "i refuse to believe you're older than civilisation honestly",
+                "i refuse to believe you're older than civilisation",
                 "you belong in a museum at that age"
             )
             + ". "
@@ -39,64 +39,28 @@ public class AgeState : ChatState
                 "seriously how old are you actually?",
                 "come on give me a real age",
                 "be honest this time",
-                "right actual answer now",
-                "stop aging backwards and answer properly"
+                "right actual answer now"
             );
         }
-        if (chat.IsAbsurdInput(lower))
-        {
-            return chat.RandomChoice(
-                "right okay so you're clearly avoiding the question",
-                "you're impossible to get a straight answer from honestly",
-                "you sound like an npc side character honestly",
-                "i genuinely can't tell when you're joking anymore"
-            );
-        }
-        if (detectedAge <= 0)
+
+        if (
+            detectedAge <= 0
+        )
         {
             return chat.RandomChoice(
                 "wait i still don't actually know how old you are",
                 "you completely dodged the question there",
                 "right but you never answered me",
                 "you're being suspiciously secretive about your age",
-                "so we're pretending i didn't ask then?",
-                "you're acting like age is classified information"
-            );
-        }
-        if (detectedAge <= 10)
-        {
-            chat.ChangeState(
-                new CasualState(chat)
-            );
-
-            return chat.RandomChoice(
-                "hold on are you even old enough to have this phone honestly",
-                "right where are your parents",
-                "you sound suspiciously young honestly",
-                "why do i suddenly feel responsible"
+                "so we're pretending i didn't ask then?"
             );
         }
 
-        if (detectedAge >= 70)
-        {
-            chat.ChangeState(
-                new CasualState(chat)
-            );
-
-            return chat.RandomChoice(
-                "right either you're lying or i'm texting a vampire honestly",
-                "there is absolutely no way you're seventy",
-                "you are NOT eighty four be serious",
-                "okay ancient one",
-                "if you're actually that old i'm respecting my elders immediately"
-            );
-        }
         chat.userAge =
             detectedAge;
 
-        chat.knowsUserAge = true;
-
-        chat.askedAgeRecently = true;
+        chat.knowsUserAge =
+            true;
 
         PlayerPrefs.SetInt(
             "UserAge",
@@ -108,15 +72,12 @@ public class AgeState : ChatState
             1
         );
 
-        if (detectedAge < 18)
+        if (
+            detectedAge < 18
+        )
         {
             chat.lifeStage =
                 "school";
-
-            PlayerPrefs.SetString(
-                "LifeStage",
-                "school"
-            );
 
             chat.ChangeState(
                 new SchoolState(chat)
@@ -146,11 +107,6 @@ public class AgeState : ChatState
             chat.lifeStage =
                 "youngAdult";
 
-            PlayerPrefs.SetString(
-                "LifeStage",
-                "youngAdult"
-            );
-
             chat.ChangeState(
                 new CasualState(chat)
             );
@@ -173,11 +129,6 @@ public class AgeState : ChatState
         chat.lifeStage =
             "adult";
 
-        PlayerPrefs.SetString(
-            "LifeStage",
-            "adult"
-        );
-
         chat.ChangeState(
             new CasualState(chat)
         );
@@ -186,19 +137,19 @@ public class AgeState : ChatState
             "look at us getting old",
             "mad how fast time moves",
             "proper adult life now then huh",
-            "christ where did the years go",
-            "we're all aging against our will honestly"
+            "christ where did the years go"
         )
         + ". "
         + chat.RandomChoice(
-            
             "what's life looking like for you lately?",
             "you still finding time for yourself?",
             "life treating you alright these days?"
         );
     }
 
-    int ExtractAge(string input)
+    int ExtractAge(
+        string input
+    )
     {
         string cleaned =
             input.Replace(",", " ")
@@ -209,7 +160,10 @@ public class AgeState : ChatState
         string[] words =
             cleaned.Split(' ');
 
-        foreach (string word in words)
+        foreach (
+            string word
+            in words
+        )
         {
             int number;
 
