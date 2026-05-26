@@ -624,10 +624,29 @@ public class ChatManager : MonoBehaviour
             }
 
             #endregion
+            #region Waiting For Slang
             string reply = "";
 
+            if (waitingForSlangExplanation)
+            {
+                memorySystem.Remember(
+                    "slang_" + pendingSlangWord,
+                    input
+                );
+
+                waitingForSlangExplanation =
+                    false;
+
+                reply = RandomChoice(
+                    "right okay that actually makes sense now",
+                    "i'm learning your strange language slowly",
+                    "fair enough i think i understand now",
+                    "see i'm adapting to modern civilisation"
+                );
+            }
+
             //detects weird/slang user input
-            if (
+            else if (
                 analyser.ContainsWeirdInput(
                     input.ToLower(),
                     this
@@ -683,6 +702,7 @@ public class ChatManager : MonoBehaviour
                     );
                 }
             }
+            #endregion
             else
             {
                 if (
