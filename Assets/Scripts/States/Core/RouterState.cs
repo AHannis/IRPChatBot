@@ -23,13 +23,68 @@ public class RouterState : ChatState
         return chat.currentState
             .HandleInput(input);
     }
-
+    #region Debug Forced States
     public override string HandleInput(
         string input
     )
     {
         string lower =
             input.ToLower();
+
+
+        if (chat.forceFunnyStory)
+        {
+            chat.forceFunnyStory = false;
+
+            return RouteToState(
+                new UncleStoryState(chat),
+                input
+            );
+        }
+
+        if (chat.forceComfortState)
+        {
+            chat.forceComfortState = false;
+
+            return RouteToState(
+                new ComfortState(chat),
+                input
+            );
+        }
+
+        if (chat.forceGamingState)
+        {
+            chat.forceGamingState = false;
+
+            return RouteToState(
+                new GamingState(chat),
+                input
+            );
+        }
+
+        if (chat.forceUniState)
+        {
+            chat.forceUniState = false;
+
+            return RouteToState(
+                new UniState(chat),
+                input
+            );
+        }
+
+        if (chat.forceFamilyState)
+        {
+            chat.forceFamilyState = false;
+
+            return RouteToState(
+                new FamilyState(chat),
+                input
+            );
+        }
+
+        #endregion
+
+    #region Name Corrections & Name Detection
 
         //detects direct name corrections
         if (
@@ -105,6 +160,9 @@ public class RouterState : ChatState
                 );
             }
         }
+        #endregion
+
+    #region Emotional Detection
 
         //high priority emotional detection
         bool emotionalInput =
@@ -221,9 +279,6 @@ public class RouterState : ChatState
             chat.lastEmotion =
                 "emotional";
 
-            Debug.Log(
-                "EMOTIONAL OVERRIDE"
-            );
 
             return RouteToState(
                 new ComfortState(chat),
@@ -242,9 +297,6 @@ public class RouterState : ChatState
             && !chat.storyActive
         )
         {
-            Debug.Log(
-                "UNCLE STORY INTERRUPTION"
-            );
 
             chat.ChangeState(
                 new UncleStoryState(chat)
@@ -259,7 +311,9 @@ public class RouterState : ChatState
                 "you know what happened earlier?"
             );
         }
+        #endregion
 
+    #region Topic Based Routing
         //topic based routing
         if (
             hardTopicShift
@@ -558,7 +612,9 @@ public class RouterState : ChatState
                 input
             );
         }
+        #endregion
 
+    #region Intentional Conversational Repair
         //intentional conversational repair behaviour
         //helps simulate human reading mistakes
         if (
@@ -646,7 +702,9 @@ public class RouterState : ChatState
                 )
             );
         }
+        #endregion
 
+    #region Relationship Callbacks
         //relationship based conversational callbacks
         if (
             !(chat.currentState
@@ -675,3 +733,4 @@ public class RouterState : ChatState
         );
     }
 }
+#endregion

@@ -9,15 +9,77 @@ public class CasualState : ChatState
     {
     }
 
+    //forced input for testing
+
     public override string HandleInput(
-        string input
-    )
+    string input
+)
     {
         casualExchanges++;
 
         string lower =
             input.ToLower();
 
+        #region Debug Forced States
+
+        if (chat.forceFunnyStory)
+        {
+            chat.forceFunnyStory = false;
+
+            chat.ChangeState(
+                new UncleStoryState(chat)
+            );
+
+            return "okay listen to this";
+        }
+
+        if (chat.forceComfortState)
+        {
+            chat.forceComfortState = false;
+
+            chat.ChangeState(
+                new ComfortState(chat)
+            );
+
+            return "i'm listening";
+        }
+
+        if (chat.forceGamingState)
+        {
+            chat.forceGamingState = false;
+
+            chat.ChangeState(
+                new GamingState(chat)
+            );
+
+            return "still gaming lately?";
+        }
+
+        if (chat.forceUniState)
+        {
+            chat.forceUniState = false;
+
+            chat.ChangeState(
+                new UniState(chat)
+            );
+
+            return "uni still destroying you?";
+        }
+
+        if (chat.forceFamilyState)
+        {
+            chat.forceFamilyState = false;
+
+            chat.ChangeState(
+                new FamilyState(chat)
+            );
+
+            return "family being chaotic again?";
+        }
+
+        #endregion
+
+        #region Specialised States
         //routes major topics into specialised states
         if (
             chat.ContainsAny(
@@ -126,7 +188,9 @@ public class CasualState : ChatState
                 "i got distracted halfway through"
             );
         }
+        #endregion
 
+        #region Conversational Pressure
         //short acknowledgement handling
         if (
             lower == "yeah"
@@ -235,6 +299,9 @@ public class CasualState : ChatState
                 "moving on swiftly"
             );
         }
+        #endregion
+
+        #region Eliza Inspired Reflective Callbacks
 
         //eliza inspired reflective callbacks
         //reuses user phrases to create illusion of understanding
@@ -295,7 +362,9 @@ public class CasualState : ChatState
                 "that's a strange sentence out of context"
             );
         }
+        #endregion
 
+        #region Age Discovery, Reciprocal Reply & Personality System
         //natural age discovery flow
         if (
             !chat.knowsUserAge
@@ -393,11 +462,15 @@ public class CasualState : ChatState
 
         //uncle story interruption system
         if (
-            UnityEngine.Random
-            .value < 0.12f
+            (
+                UnityEngine.Random.value < 0.12f
+                || chat.forceFunnyStory
+            )
             && !chat.storyActive
         )
         {
+            chat.forceFunnyStory = false;
+
             chat.ChangeState(
                 new UncleStoryState(
                     chat
@@ -452,3 +525,4 @@ public class CasualState : ChatState
             );
     }
 }
+#endregion

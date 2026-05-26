@@ -19,7 +19,8 @@ public class TypingDots : MonoBehaviour
 
     string lastCorrection = "";
 
-    //handling animated typing dot loop
+ 
+ #region Animated Typing Loop
     public IEnumerator AnimateDots(
         int loops
     )
@@ -85,8 +86,9 @@ public class TypingDots : MonoBehaviour
             dot3.enabled = false;
         }
     }
+    #endregion
 
-    //wrapper coroutine to trigger typing animation
+ #region Coroutine To Trigger Animation
     public IEnumerator PlayTyping(
         int loops
     )
@@ -121,8 +123,10 @@ public class TypingDots : MonoBehaviour
             )
         );
     }
+    #endregion
 
-    //determines how long animation should play dependent on length and topic complexity
+
+ #region Determines How Long Animation Should Play
     //adding more realistic feel than instant reply and calculates length of reply to message animate ratio
     public int CalculateTypingLoops(
         string reply
@@ -175,35 +179,44 @@ public class TypingDots : MonoBehaviour
     {
         float time =
             Random.Range(
-                0.25f,
-                0.9f
+                1.2f,
+                2.8f
             );
 
         time +=
-            input.Length * 0.01f;
+            input.Length * 0.025f;
 
         if (
             input.Contains("?")
         )
         {
-            time += 0.4f;
+            time +=
+                Random.Range(
+                    0.6f,
+                    1.5f
+                );
         }
 
         if (
             input.Length > 80
         )
         {
-            time += 0.5f;
+            time +=
+                Random.Range(
+                    1f,
+                    2f
+                );
         }
 
         return Mathf.Clamp(
             time,
-            0.25f,
-            3.5f
+            1.5f,
+            8f
         );
     }
-
-    //more human feel with occasional typos that follows up later with correction in HasCorrection and GetCorrection
+    #endregion
+   
+ #region HasCorrection & GetCorrection
     public string AddOccasionalTypo(
         string text
     )
@@ -321,3 +334,4 @@ public class TypingDots : MonoBehaviour
         return lastCorrection;
     }
 }
+#endregion

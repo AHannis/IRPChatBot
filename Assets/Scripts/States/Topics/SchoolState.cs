@@ -15,7 +15,7 @@ public class SchoolState : ChatState
         chat.currentMood =
             ChatManager.Mood.Playful;
 
-        // more personal openings for closer users
+ #region More Personal Openings
         if (chat.relationshipLevel >= 20)
         {
             chat.SendAIImmediate(
@@ -50,10 +50,9 @@ public class SchoolState : ChatState
 
         string lower =
             input.ToLower();
+        #endregion More P
 
-        // IMPORTANT:
-        // school topic detection comes first
-        // so generic fallback systems don't steal the response
+ #region School Topic Detection 
         if (
             chat.ContainsAny(
                 lower,
@@ -150,8 +149,9 @@ public class SchoolState : ChatState
                 "school friendships change every five minutes"
             );
         }
-
-        // social media chaos
+        #endregion
+ 
+ #region Social Media Mentions
         if (
             chat.ContainsAny(
                 lower,
@@ -319,8 +319,9 @@ public class SchoolState : ChatState
                 "you surviving it alright?"
             );
         }
+        #endregion
 
-        // random uncle filler
+ #region Random Uncle Filler
         if (
             Random.value < 0.15f
         )
@@ -371,3 +372,4 @@ public class SchoolState : ChatState
         );
     }
 }
+#endregion

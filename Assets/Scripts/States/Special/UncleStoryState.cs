@@ -30,9 +30,10 @@ public class UncleStoryState : ChatState
                     "tesco",
                     "tesco_story"
                 );
-
+                chat.contextStep = 1;
                 chat.SendAIImmediate(
                     chat.RandomChoice(
+
                         "you know what happened to me at tesco earlier?",
                         "remind me to never go tesco again",
                         "i had the weirdest interaction at tesco earlier",

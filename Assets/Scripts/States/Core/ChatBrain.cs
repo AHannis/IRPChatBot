@@ -21,7 +21,8 @@ public class ChatBrain : MonoBehaviour
             GetComponent<ChatManager>();
     }
 
-    //generates fake everyday uncle stories to create illusion of personal life
+    
+ #region Generates Fake Everyday Uncle Stories
     public string GetRandomLifeEvent()
     {
         List<string> options =
@@ -182,9 +183,9 @@ public class ChatBrain : MonoBehaviour
 
         return selected;
     }
-
-    //fallback natural sounding responses
-
+    #endregion 
+ 
+ #region Natural Sounding Responses
     public string GetNaturalReply()
     {
         if (
@@ -247,8 +248,9 @@ public class ChatBrain : MonoBehaviour
                 "fair enough you seem busy lately"
             );
         }
+        #endregion 
 
-        //small chance for hesitation style human response
+ #region Hesitation For Human Response
         if (
             Random.value < 0.08f
         )
@@ -387,8 +389,9 @@ public class ChatBrain : MonoBehaviour
             "none of those words looked real to me"
         );
     }
-
-    //contextual followup stories for fake conversational continuity
+    #endregion 
+    
+ #region Follow Up Story
     public string GetContextualLifeEvent()
     {
         int r =
@@ -462,8 +465,9 @@ public class ChatBrain : MonoBehaviour
             "funny you say that actually"
         );
     }
-
-    //keyword detection system for routing conversation topics
+    #endregion
+ 
+ #region Keyword Detection for Routing Conversation Topics
     public bool ContainsGamingTerms(
         string lower
     )
@@ -527,8 +531,9 @@ public class ChatBrain : MonoBehaviour
             || lower.Contains("crochet")
             || lower.Contains("craft");
     }
+    #endregion
 
-    //multi stage story continuation system
+ #region Multi Stage Story Continuation
     public string ContinueActiveStory()
     {
         if (
@@ -583,8 +588,9 @@ public class ChatBrain : MonoBehaviour
 
         return "";
     }
+    #endregion
 
-    //starts random conversational story event
+ #region Starts Random Conversational Story Event
     public void StartRandomStory()
     {
         List<string>
@@ -659,7 +665,7 @@ public class ChatBrain : MonoBehaviour
         return
             Random.value < 0.25f;
     }
-
+ 
     //builds simple smalltalk chains automatically
     public string BuildSmallTalkResponse()
     {
@@ -671,9 +677,12 @@ public class ChatBrain : MonoBehaviour
             "you surviving alright lately at least?",
             "what've you been focused on recently?"
         );
-    }
 
-    //emotion based conversational responses
+    }
+    #endregion
+
+ #region Emotion Based Responses
+
     public string BuildMoodResponse(
         ChatManager.Mood mood
     )
@@ -720,8 +729,10 @@ public class ChatBrain : MonoBehaviour
             "can't blame you"
         );
     }
+}
+#endregion
 
     //looked into fuzzy conversational systems using csharpcorner
     //reference:
     //https://www.c-sharpcorner.com/article/fuzzy-search-in-c-sharp
-}
+    

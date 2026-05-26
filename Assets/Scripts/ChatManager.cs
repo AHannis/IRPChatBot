@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class ChatManager : MonoBehaviour
 
 
+#region Variables, References, Editable
 {
     public AudioSource audioSource;
 
@@ -19,7 +20,33 @@ public class ChatManager : MonoBehaviour
     public GameObject offlineIndicator;
     //converts emojis
     public EmojiParser emojiParser;
+    [Header("Debug Showcase")]
 
+    public bool forceComfortState;
+
+    public bool forceConcernState;
+
+    public bool forceGamingState;
+
+    public bool forceUniState;
+
+    public bool forceSchoolState;
+
+    public bool forceWorkState;
+
+    public bool forceFamilyState;
+
+    public bool forceFoodState;
+
+    public bool forceJokeState;
+
+    public bool forceRoleplayState;
+
+    public bool forceSingingState;
+
+    public bool forceGoodbyeState;
+
+    public bool forceFunnyStory = false;
     //tracks whether user has finished initial intro flow
     public bool completedIntro = false;
 
@@ -164,7 +191,7 @@ public class ChatManager : MonoBehaviour
 
     [HideInInspector]
     public string lastQuestionTopic = "";
-
+    #endregion 
     void Awake()
     {
         brain =
@@ -174,7 +201,8 @@ public class ChatManager : MonoBehaviour
             GetComponent<ConversationAnalyser>();
     }
 
-    //loads memories + decides intro or reconnect
+    
+ #region Loads Memories, Intro or Reconnect
     void Start()
     {
         memorySystem.LoadMemories();
@@ -339,7 +367,7 @@ public class ChatManager : MonoBehaviour
 
         inputField.ActivateInputField();
     }
-
+   
 
     public void SendUserMessage(
         string message
@@ -416,8 +444,9 @@ public class ChatManager : MonoBehaviour
                 )
             );
         }
-
-        //main bot response pipeline
+        #endregion 
+  
+ #region Bot Response Pipeline
         IEnumerator ProcessAIResponse(
             string input
         )
@@ -475,7 +504,126 @@ public class ChatManager : MonoBehaviour
             yield return new WaitForSeconds(
                 thinkTime
             );
+            #region Debug Forced States
 
+            if (forceFunnyStory)
+            {
+                forceFunnyStory = false;
+
+                ChangeState(
+                    new UncleStoryState(this)
+                );
+            }
+
+            else if (forceComfortState)
+            {
+                forceComfortState = false;
+
+                ChangeState(
+                    new ComfortState(this)
+                );
+            }
+
+            else if (forceConcernState)
+            {
+                forceConcernState = false;
+
+                ChangeState(
+                    new ConcernState(this)
+                );
+            }
+
+            else if (forceGamingState)
+            {
+                forceGamingState = false;
+
+                ChangeState(
+                    new GamingState(this)
+                );
+            }
+
+            else if (forceUniState)
+            {
+                forceUniState = false;
+
+                ChangeState(
+                    new UniState(this)
+                );
+            }
+
+            else if (forceSchoolState)
+            {
+                forceSchoolState = false;
+
+                ChangeState(
+                    new SchoolState(this)
+                );
+            }
+
+            else if (forceWorkState)
+            {
+                forceWorkState = false;
+
+                ChangeState(
+                    new WorkState(this)
+                );
+            }
+
+            else if (forceFamilyState)
+            {
+                forceFamilyState = false;
+
+                ChangeState(
+                    new FamilyState(this)
+                );
+            }
+
+            else if (forceFoodState)
+            {
+                forceFoodState = false;
+
+                ChangeState(
+                    new FoodState(this)
+                );
+            }
+
+            else if (forceJokeState)
+            {
+                forceJokeState = false;
+
+                ChangeState(
+                    new JokeState(this)
+                );
+            }
+
+            else if (forceRoleplayState)
+            {
+                forceRoleplayState = false;
+
+                ChangeState(
+                    new RoleplayState(this)
+                );
+            }
+
+            else if (forceSingingState)
+            {
+                forceSingingState = false;
+
+                ChangeState(
+                    new SingingState(this)
+                );
+            }
+
+            else if (forceGoodbyeState)
+            {
+                forceGoodbyeState = false;
+
+                ChangeState(
+                    new GoodbyeState(this)
+                );
+            }
+
+            #endregion
             string reply = "";
 
             //detects weird/slang user input
@@ -607,8 +755,9 @@ public class ChatManager : MonoBehaviour
                     }
                 }
             }
+            #endregion
 
-            //fallback response safety
+ #region Fallback Response
             if (
                 string.IsNullOrEmpty(
                     reply
@@ -735,10 +884,11 @@ public class ChatManager : MonoBehaviour
             isProcessingResponse = false;
         }
     }
-    
-
-//instantly sends bot message without typing delay
-public void SendAIImmediate(
+    #endregion 
+  
+ #region Calls Follow Up, Analyser & Chat Brain
+    //instantly sends bot message without typing delay
+    public void SendAIImmediate(
     string message
 )
 {
@@ -914,9 +1064,10 @@ public bool ContainsAny(
         words
     );
 }
+    #endregion 
 
-//fully resets chatbot state + memory
-public void ResetChat()
+ #region Resets State & Memory
+    public void ResetChat()
 {
     StopAllCoroutines();
 
@@ -953,9 +1104,11 @@ public void ResetChat()
         new IntroState(this)
     );
 }
+    #endregion
 
-//checks if user recently mentioned keyword
-public bool RecentlyMentioned(
+ #region Checks For User Keywords
+    //checks if user recently mentioned keyword
+    public bool RecentlyMentioned(
     string key
 )
 {
@@ -966,15 +1119,16 @@ public bool RecentlyMentioned(
             key.ToLower()
         );
 }
-
-//gets continuation for previous conversations
-public string GetConversationContinuation()
+    #endregion
+    //gets continuation for previous conversations
+    public string GetConversationContinuation()
 {
     return brain.GetConversationContinuation();
 }
-
-//emoji shortcut conversion system
-public string Emoji(
+    //detects responses
+    #region
+    //emoji shortcut conversion system
+    public string Emoji(
     string emojiName
 )
 {
@@ -1101,9 +1255,10 @@ public bool ShouldMisread()
         playerData.relationshipLevel > 5
         && Random.value < 0.015f;
 }
-
-//property wraps for player data system
-public Mood currentMood
+    #endregion
+    //properties for player data system e.g., mood, relatuonship level, user age etc
+    #region
+    public Mood currentMood
 {
     get
     {
@@ -1299,3 +1454,4 @@ IEnumerator SendIdleFollowUp()
     followUpAlreadySent = true;
 }
 }
+#endregion

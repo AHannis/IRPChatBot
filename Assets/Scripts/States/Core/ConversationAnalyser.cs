@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class ConversationAnalyser : MonoBehaviour
 {
+    //varaibles, public bools, strings 
+    #region
     ChatManager chat;
 
     //tracks most recent detected topic
@@ -25,7 +27,9 @@ public class ConversationAnalyser : MonoBehaviour
     public bool roleplayMode = false;
 
     public int exchangesSinceVisitQuestion = 0;
-
+    #endregion
+    //slang, accidental fake names
+    #region
     //modern slang detection list
     string[] weirdInputs =
     {
@@ -33,9 +37,6 @@ public class ConversationAnalyser : MonoBehaviour
         "rizz",
         "sus",
         "yeet",
-        "gyatt",
-        "sigma",
-        "fanum",
         "delulu",
         "goated",
         "ate",
@@ -69,14 +70,14 @@ public class ConversationAnalyser : MonoBehaviour
         "lmao",
         "mood"
     };
-
+    #endregion
     void Awake()
     {
         chat =
             GetComponent<ChatManager>();
     }
-
-    //main conversation analysis pipeline
+    #region
+    //main conversation analysis 
     public void Analyse(
         string input
     )
@@ -235,8 +236,9 @@ public class ConversationAnalyser : MonoBehaviour
             lastTopic = "reading";
         }
     }
-
+    #endregion
     //emotion detection system
+    #region
     void HandleEmotionAnalysis(
         string lower
     )
@@ -424,8 +426,9 @@ public class ConversationAnalyser : MonoBehaviour
 
         chat.emotionLoops = 0;
     }
-
+    #endregion
     //safe keyword detection with word boundaries
+    #region
     //prevents false positives from partial words
     public bool ContainsAny(
         string input,
@@ -650,8 +653,9 @@ public class ConversationAnalyser : MonoBehaviour
                 name.ToLower()
             );
     }
-
+    #endregion
     //goodbye detection
+    #region
     public bool IsGoodbye(
         string lower
     )
@@ -682,8 +686,9 @@ public class ConversationAnalyser : MonoBehaviour
             || lower.Contains("night")
             || lower.Contains("sleeping now");
     }
-
+    #endregion
     //roleplay/fantasy detection
+    #region
     public bool IsRoleplay(
         string lower
     )
@@ -758,9 +763,10 @@ public class ConversationAnalyser : MonoBehaviour
             || lower.Contains("old")
             || lower.Contains("bully");
     }
-
+    #endregion
     //detects weird/slang inputs
     //used for eliza style "what does that mean?" moments
+    #region
     public bool ContainsWeirdInput(
         string input,
         ChatManager chat
@@ -858,8 +864,9 @@ public class ConversationAnalyser : MonoBehaviour
 
         return "that";
     }
-
+    #endregion
     //detects reciprocal conversation replies
+    #region
     public bool IsReciprocalResponse(
         string lower
     )
@@ -960,3 +967,4 @@ public class ConversationAnalyser : MonoBehaviour
         return input.Trim();
     }
 }
+#endregion
