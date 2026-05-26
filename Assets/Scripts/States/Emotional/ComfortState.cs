@@ -26,7 +26,7 @@ public class ComfortState : ChatState
     ) : base(manager)
     {
     }
-
+    #region Enter Comfort State
     public override void Enter()
     {
         chat.currentMood =
@@ -159,7 +159,8 @@ public class ComfortState : ChatState
                 "doesn't sound like life's given you chance to breathe recently"
             );
         }
-
+        #endregion
+        #region Stress & Anxiety Handling
         //stress / anxiety handling
         if (
             lower.Contains("stress")
@@ -306,7 +307,8 @@ public class ComfortState : ChatState
                 "that kind of exhaustion builds up quietly over time"
             );
         }
-
+        #endregion
+        #region Daily Stress
         //daily life stress
         if (
             lower.Contains("school")
@@ -436,8 +438,9 @@ public class ComfortState : ChatState
                 "people forget how exhausting life gets mentally"
             );
         }
+        #endregion
+        #region Prevents Comfort State Lasting Forever
 
-     
         //prevents comfort state lasting forever
         if (
             comfortExchanges >= 4
@@ -517,7 +520,8 @@ public class ComfortState : ChatState
 
         return true;
     }
-
+    #endregion
+    #region Rotates Reaassurance Styles
     //rotates reassurance styles slightlyto reduce repetitive emotional phrasing
     string GetComfortResponse()
     {
@@ -560,3 +564,4 @@ public class ComfortState : ChatState
         }
     }
 }
+#endregion

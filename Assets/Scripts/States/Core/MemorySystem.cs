@@ -22,7 +22,7 @@ public class MemorySystem : MonoBehaviour
     //allows memories to be overwritten
     public bool overwriteExistingMemories =
         true;
-
+    #region Memory Storage
     //stores memory + persists it between sessions
     //helps simulate long term relationship continuity
     public void Remember(
@@ -201,7 +201,8 @@ public class MemorySystem : MonoBehaviour
 
         SaveMemoryKeyList();
     }
-
+    #endregion
+    #region Saves Every Active Memory
     //saves every active memory
     public void SaveMemories()
     {
@@ -358,7 +359,8 @@ public class MemorySystem : MonoBehaviour
             randomKey
         );
     }
-
+    #endregion
+    #region Returns Memories And Topics
     //returns memories matching category prefixes
     //example: slang topic, emotion
     public List<string> GetMemoriesByCategory(
@@ -420,7 +422,8 @@ public class MemorySystem : MonoBehaviour
             );
         }
     }
-
+    #endregion
+    #region Wipes Memory System
     //completely wipes memory system
     public void ClearMemories()
     {
@@ -459,3 +462,4 @@ public class MemorySystem : MonoBehaviour
         PlayerPrefs.Save();
     }
 }
+#endregion
