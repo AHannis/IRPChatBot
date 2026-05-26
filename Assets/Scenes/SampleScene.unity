@@ -1263,7 +1263,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1854288602}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.99998266
+  m_Size: 0.999992
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2163,6 +2163,19 @@ MonoBehaviour:
   analyser: {fileID: 1684166370}
   offlineIndicator: {fileID: 1842096754}
   emojiParser: {fileID: 1684166376}
+  forceComfortState: 0
+  forceConcernState: 0
+  forceGamingState: 0
+  forceUniState: 0
+  forceSchoolState: 0
+  forceWorkState: 0
+  forceFamilyState: 0
+  forceFoodState: 0
+  forceJokeState: 0
+  forceRoleplayState: 0
+  forceSingingState: 0
+  forceGoodbyeState: 0
+  forceFunnyStory: 0
   completedIntro: 0
   lastUserMessageTime: 0
   typingDots: {fileID: 1684166377}
@@ -2189,7 +2202,7 @@ MonoBehaviour:
   awaitingFunnyStory: 1
   waitingForSlangExplanation: 0
   isProcessingResponse: 0
-  storyActive: 1
+  storyActive: 0
   pendingSlangWord: 
   lastEmotion: 
   lastTopic: 
@@ -2200,7 +2213,7 @@ MonoBehaviour:
   activeStory: 
   lastMessageTime: 0
   callbackChance: 0.2
-  chaosLevel: 0
+  chaosLevel: 3
   recentMessages: []
   recentAIReplies: []
   rememberedTopics: []
@@ -2351,7 +2364,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   userName: 
   preferredNickname: 
-  relationshipLevel: 0
+  relationshipLevel: 10
   userAge: -1
   knowsUserAge: 0
   lifeStage: 
@@ -2571,7 +2584,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -556.7425}
+  m_AnchoredPosition: {x: 0, y: -556.75}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1838383627
